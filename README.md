@@ -2,9 +2,13 @@
 SpaceBallz - A Delphi Game
 
 Single Person, Two Player, Thumb against thumb, Ball basher.
+Juggle up to twelve spheres of galatic matter in outer space!!
+
 Tested on Android and Windows with a touch screen.
 
 Just a quick little thing, entire game in one class.
+
+Delphi 11, Firemonkey3d, uses base3d.
 
 Happy Birthday DELPHI!!!
 
