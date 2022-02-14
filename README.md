@@ -1,7 +1,7 @@
 # SpaceBallz
 SpaceBallz - A Delphi Game
 
-Single Person, Two Player, Thumb against thumb, Ball basher.
+Single Person, Two Player, Thumb against thumb, Ball basher.<br>
 Juggle up to twelve spheres of galatic matter in outer space!!
 
 3 Game modes.
