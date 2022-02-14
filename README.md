@@ -4,15 +4,15 @@ SpaceBallz - A Delphi Game
 Single Person, Two Player, Thumb against thumb, Ball basher.<br>
 Juggle up to twelve spheres of galatic matter in outer space!!
 
-3 Game modes.
-Practice - Can set number of balls.
-Levels - A ball added every 10 seconds.
-Tournament - Work in progress, currently does Levels
+3 Game modes.<br>
+Practice - Can set number of balls.<br>
+Levels - A ball added every 10 seconds.<br>
+Tournament - Work in progress, currently does Levels<br>
 
-Delphi 11, Firemonkey3d, uses base3d.
+Delphi 11, Firemonkey3d, uses base3d.<br>
 
-Happy Birthday DELPHI!!!
-2.14.2022
+Happy Birthday DELPHI!!!<br>
+<small>2.14.2022</small>
 
 
 
