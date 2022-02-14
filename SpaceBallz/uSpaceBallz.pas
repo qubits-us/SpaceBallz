@@ -19,6 +19,47 @@ uses
   FMX.MaterialSources, FMX.Objects3D, FMX.Effects, FMX.Filter.Effects,FMX.Layers3D,
   FMX.Objects,uDlg3dCtrls,uNumSelectDlg,uInertiaTimer;
 
+Const
+   MAX_BALLS=12;
+   MAX_LEVELS=12;
+
+
+type
+    TGameLevel = class
+      private
+        fLevelSeconds:integer;
+        fLevelBalls:byte;
+      protected
+      public
+      property Seconds:integer read fLevelSeconds write fLEvelSeconds;
+      property Balls:byte read fLevelBalls write fLevelBalls;
+    end;
+
+
+type
+    TGameDefinition = class
+      private
+       fLevels: array [0..MAX_LEVELS-1] of tGameLevel;
+       fBallSize:byte;
+       fPaddleSize:byte;
+      protected
+        function GetLevel(index:integer):tGameLevel;
+        procedure SetLevel(index:integer;aLevel:tGameLevel);
+        function CountBalls:byte;
+      public
+        constructor Create;
+        destructor  Destroy;override;
+      property Levels[index:integer]:TGameLevel read GetLevel write SetLevel;
+      property Balls:byte read CountBalls;
+      property BallSize:byte read fBallSize write fBallSize;
+      property PaddleSize:byte read fPaddleSize write fPaddleSize;
+    end;
+
+
+
+
+
+
  //our balls
 type
     TSpaceBall = class(tSphere)
@@ -59,6 +100,7 @@ type
        fIm:TImage3d;
        fTxt:TText3d;
        fNumBalls:byte;
+       fGameDef:TGameDefinition;
        fBalls:Array of TSpaceBall;
        fSlideLeftBtn:TDlgButton;
        fLeftY:single;
@@ -72,8 +114,10 @@ type
        fMins:word;
        fBestTime:word;
        fStartDelay:byte;
+       fGameMode:byte;
        fBtnStart:tDlgButton;
        fBtnClose:tDlgButton;
+       fBtnGameMode:TDlgInputButton;
        fBtnBalls:tDlgInputButton;
        fBtnBallSize:tDlgInputButton;
        fBtnPaddleSize:tDlgInputButton;
@@ -102,6 +146,7 @@ type
        procedure ReSizeBalls;
        procedure TogPaddleSize(sender:tObject);
        procedure TogBallSize(sender:tObject);
+       procedure TogGameMode(sender:tObject);
 
       public
        Constructor Create(Sender: TComponent;aWidth,aHeight,aX,aY:single);Reintroduce;
@@ -117,6 +162,66 @@ type
 implementation
 
 uses dmMaterials,uGlobs;
+
+Constructor TGameDefinition.Create;
+var
+i:integer;
+begin
+ //setup levels
+ for I := Low(fLevels) to High(fLevels) do
+   begin
+      fLevels[i]:=tGameLevel.Create;
+     if i=0 then
+     fLevels[i].fLevelSeconds:=100
+     else
+     fLevels[i].fLevelSeconds:=1000*I;//every 10 seconds
+     fLevels[i].fLevelBalls:=1;//add one more ball
+   end;
+
+
+
+
+end;
+
+Destructor TGameDefinition.Destroy;
+var
+i:integer;
+begin
+
+for I := Low(fLevels) to High(fLevels) do
+     fLevels[i].Free;
+
+Inherited;
+end;
+
+function TGameDefinition.GetLevel(index: integer): TGameLevel;
+begin
+  result:=nil;
+  if (index>-1) and (index<=(high(fLevels))) then
+     result:=fLevels[index];
+end;
+
+procedure TGameDefinition.SetLevel(index: integer; aLevel: TGameLevel);
+begin
+  //
+  if (index>-1) and (index<=(high(fLevels))) then
+      fLevels[index]:=aLevel;
+end;
+
+function TGameDefinition.CountBalls: Byte;
+var
+I: Integer;
+begin
+  result:=0;
+   for I := Low(fLevels) to High(fLevels) do
+    begin
+     result:=result+fLevels[i].Balls;
+    end;
+
+end;
+
+
+
 
 Constructor TSpaceBall.Create(aOwner: TComponent; aWidth: Single; aHeight: Single; ax: Single; ay: Single);
 begin
@@ -172,6 +277,7 @@ begin
   fGameTmr:=TInertiaTimer.Create;
   fGameTmr.Interval:=10;
   fGameTmr.OnTimer:=GameStep;
+  fGameDef:=TGameDefinition.Create;
   Width:=aWidth;
   Height:=aHeight;
   Position.X:=aX;
@@ -182,6 +288,7 @@ begin
   fNumBalls:=2;
   fBallSize:=1;
   fPaddleSize:=1;
+  fGameMode:=0;//practice
 
   //space.. make it deep...
   //increase im's w h in porportion to z
@@ -353,7 +460,21 @@ begin
       fBtnStart.OnClick:=StartGame;
       newx:=newx+(aBtnWidth+aGap);
 
-      fBtnBalls:=tDlgInputButton.Create(self,aBtnWidth,aBtnHeight,newx,newy);
+      fBtnGameMode:=tDlgInputButton.Create(self,aBtnWidth,aBtnHeight,newx,newy);
+      fBtnGameMode.Projection:=TProjection.Screen;
+      fBtnGameMode.Parent:=self;
+      fBtnGameMode.MaterialSource:=dlgMaterial.Buttons.Button;
+      fBtnGameMode.TextColor:=dlgMaterial.Buttons.TextColor.Color;
+      fBtnGameMode.FontSize:=dlgMaterial.FontSize;
+      fBtnGameMode.LabelSize:=dlgMaterial.FontSize/1.2;
+      fBtnGameMode.LabelColor:=dlgMaterial.TextColor.Color;
+      fBtnGameMode.BtnBitMap.Assign(dlgMaterial.Buttons.Rect.Texture);
+      fBtnGameMode.LabelText:='Game Mode';
+      fBtnGameMode.Text:='Practice';
+      fBtnGameMode.OnClick:=TogGameMode;
+      newx:=newx+((aBtnWidth)+aGap)-(aBtnWidth/4);
+
+      fBtnBalls:=tDlgInputButton.Create(self,aBtnWidth/2,aBtnHeight,newx,newy);
       fBtnBalls.Projection:=TProjection.Screen;
       fBtnBalls.Parent:=self;
       fBtnBalls.MaterialSource:=dlgMaterial.Buttons.Button;
@@ -365,7 +486,7 @@ begin
       fBtnBalls.LabelText:='# Balls';
       fBtnBalls.Text:=IntToStr(fNumBalls);
       fBtnBalls.OnClick:=DoNumBalls;
-      newx:=newx+(aBtnWidth+aGap);
+      newx:=newx+((aBtnWidth/2)+aGap)+(aBtnWidth/4);
 
       fBtnBallSize:=tDlgInputButton.Create(self,aBtnWidth,aBtnHeight,newx,newy);
       fBtnBallSize.Projection:=TProjection.Screen;
@@ -475,6 +596,7 @@ begin
      fBalls[i].Free;
 
 
+     fGameDef.Free;
 
 
   fGameClock.CleanUp;
@@ -510,6 +632,10 @@ begin
   fBtnBalls.CleanUp;
   fBtnBalls.Free;
   fBtnBalls:=nil;
+
+  fBtnGameMode.CleanUp;
+  fBtnGameMode.Free;
+  fBtnGameMode:=nil;
 
   fBtnBallSize.CleanUp;
   fBtnBallSize.Free;
@@ -671,10 +797,30 @@ begin
 
 end;
 
+procedure TSpaceBallz.TogGameMode(sender: TObject);
+begin
+  if fGameMode<2 then Inc(fGameMode) else fGameMode:=0;
+    case fGameMode of
+    0:begin
+      fBtnGameMode.Text:='Practice';
+      fBtnBalls.Visible:=true;
+      end;
+    1:begin
+      fBtnGameMode.Text:='Levels';
+      fBtnBalls.Visible:=false;
+
+      end;
+    2:begin
+      fBtnGameMode.Text:='Tournaments';
+      fBtnBalls.Visible:=false;
+      end;
+    end;
+end;
+
 
 procedure TSpaceBallz.StartGame(sender:tObject);
 var
-i:integer;
+i,j,aBallNum:integer;
 aHd:byte;
 aSize:single;
 begin
@@ -684,6 +830,16 @@ begin
 EndGame;
 exit;
 end;
+
+    if fGameMode>0 then
+      begin
+        //using levels
+        fNumBalls:=fGameDef.Balls;
+      end else
+        fNumBalls:=StrToInt(fBtnBalls.Text);
+
+
+
 
     aSize:=fBallMaxSize;
 
@@ -703,7 +859,8 @@ end;
   if Length(fBalls)<>fNumBalls then ResizeBalls;
 
 
-
+ if fGameMode=0 then
+  begin
   for I := Low(fBalls) to High(fBalls) do
    begin
     fBalls[i].Position.Y:=fBallAreaTop;
@@ -723,10 +880,56 @@ end;
        end;
     if aHd=0 then aHd:=1 else aHd:=0;
    end;
+  end else
+     begin
+       //levels and tournaments.
+       //balls get loaded based on game definition
+       aBallNum:=0;
+       for I := Low(fGameDef.fLevels) to High(fGameDef.fLevels) do
+         begin
+          if fGameDef.Levels[i].Balls>0 then
+            begin
+            for j := 0 to fGameDef.Levels[i].Balls-1 do
+              begin
+                fBalls[aBallNum].fLaunchDelay := fGameDef.Levels[i].Seconds;
+                fBalls[aBallNum].Position.Y := fBallAreaTop;
+                fBalls[aBallNum].Position.X := 0;
+                fBalls[aBallNum].Angle := 1;
+                fBalls[aBallNum].fHDirection := aHd;
+                fBalls[aBallNum].fVDirection := 0;
+                fBalls[aBallNum].Step := 2;
+                fBalls[aBallNum].Launched := false;
+                if fBalls[aBallNum].BallSize <> fBallSize then
+                begin
+                  fBalls[aBallNum].Width := aSize;
+                  fBalls[aBallNum].Height := aSize;
+                  fBalls[aBallNum].Position.Z := aSize;
+                  fBalls[aBallNum].BallSize := fBallSize;
+                end;
+                if aHd = 0 then
+                  aHd := 1
+                else
+                  aHd := 0;
+
+                Inc(aBallNum);
+              end;
+            end;
+
+
+         end;
+
+
+
+
+     end;
+
+
+
 
   fBtnBalls.Visible:=false;
   fBtnBallSize.Visible:=false;
   fBtnPaddleSize.Visible:=false;
+  fBtnGameMode.Visible:=false;
   fBtnStart.Text:='Stop';
 
 
@@ -764,9 +967,11 @@ begin
       fGameBest.Text:=Format('%.2d',[fMins])+':'+Format('%.2d',[FSecs]);
       end;
 
+   if fGameMode=0 then
    fBtnBalls.Visible:=true;
    fBtnBallSize.Visible:=true;
    fBtnPaddleSize.Visible:=true;
+   fBtnGameMode.Visible:=true;
    fBtnStart.Text:='Start';
 
 end;
