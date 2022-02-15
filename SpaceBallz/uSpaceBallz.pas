@@ -21,6 +21,7 @@ uses
 
 Const
    MAX_BALLS=12;
+   MAX_SPEED=12;
    MAX_LEVELS=12;
 
 
@@ -42,6 +43,7 @@ type
        fLevels: array [0..MAX_LEVELS-1] of tGameLevel;
        fBallSize:byte;
        fPaddleSize:byte;
+       fBallSpeed:single;
       protected
         function GetLevel(index:integer):tGameLevel;
         procedure SetLevel(index:integer;aLevel:tGameLevel);
@@ -53,6 +55,7 @@ type
       property Balls:byte read CountBalls;
       property BallSize:byte read fBallSize write fBallSize;
       property PaddleSize:byte read fPaddleSize write fPaddleSize;
+      property BallSpeed:single read fBallSpeed write fBallSpeed;
     end;
 
 
@@ -100,6 +103,7 @@ type
        fIm:TImage3d;
        fTxt:TText3d;
        fNumBalls:byte;
+       fBallSpeed:byte;
        fGameDef:TGameDefinition;
        fBalls:Array of TSpaceBall;
        fSlideLeftBtn:TDlgButton;
@@ -119,6 +123,7 @@ type
        fBtnClose:tDlgButton;
        fBtnGameMode:TDlgInputButton;
        fBtnBalls:tDlgInputButton;
+       fBtnBallSpeed:tDlgInputButton;
        fBtnBallSize:tDlgInputButton;
        fBtnPaddleSize:tDlgInputButton;
        fBallAreaTop:single;
@@ -143,6 +148,8 @@ type
        procedure DoClose(sender:tObject);
        procedure DoNumBalls(sender:tObject);
        procedure NumBallsDone(sender:tObject);
+       procedure DoBallSpeed(sender:tObject);
+       procedure BallSpeedDone(sender:tObject);
        procedure ReSizeBalls;
        procedure TogPaddleSize(sender:tObject);
        procedure TogBallSize(sender:tObject);
@@ -239,7 +246,7 @@ begin
   fVDirection:=0;
   fAngle:=0;
   fStep:=4;
-  fMaxStep:=12;
+  fMaxStep:=MAX_SPEED;
   fLastY:=0;
   fBallSize:=1;
 
@@ -286,6 +293,7 @@ begin
   fCloseOnce:=false;
   HitTest:=False;
   fNumBalls:=2;
+  fBallSpeed:=4;
   fBallSize:=1;
   fPaddleSize:=1;
   fGameMode:=0;//practice
@@ -336,6 +344,7 @@ begin
    MaterialsDm.tmGlobeImg.Texture.FlipVertical;
    fBalls[i].MaterialSource:=MaterialsDm.tmGlobeImg;
    fBalls[i].Parent:=self;
+   fBalls[i].Visible:=false;
    end;
 
      //top play area
@@ -458,9 +467,9 @@ begin
       fBtnStart.BtnBitMap.Assign(dlgMaterial.Buttons.Rect.Texture);
       fBtnStart.Text:='Start';
       fBtnStart.OnClick:=StartGame;
-      newx:=newx+(aBtnWidth+aGap);
+      newx:=newx+(aBtnWidth+aGap)-(aBtnWidth/8)+aGap;
 
-      fBtnGameMode:=tDlgInputButton.Create(self,aBtnWidth,aBtnHeight,newx,newy);
+      fBtnGameMode:=tDlgInputButton.Create(self,aBtnWidth/1.25,aBtnHeight,newx,newy);
       fBtnGameMode.Projection:=TProjection.Screen;
       fBtnGameMode.Parent:=self;
       fBtnGameMode.MaterialSource:=dlgMaterial.Buttons.Button;
@@ -472,7 +481,7 @@ begin
       fBtnGameMode.LabelText:='Game Mode';
       fBtnGameMode.Text:='Practice';
       fBtnGameMode.OnClick:=TogGameMode;
-      newx:=newx+((aBtnWidth)+aGap)-(aBtnWidth/4);
+      newx:=newx+((aBtnWidth)+aGap)-(aBtnWidth/4)-(aBtnWidth/8)+aGap;
 
       fBtnBalls:=tDlgInputButton.Create(self,aBtnWidth/2,aBtnHeight,newx,newy);
       fBtnBalls.Projection:=TProjection.Screen;
@@ -486,9 +495,24 @@ begin
       fBtnBalls.LabelText:='# Balls';
       fBtnBalls.Text:=IntToStr(fNumBalls);
       fBtnBalls.OnClick:=DoNumBalls;
-      newx:=newx+((aBtnWidth/2)+aGap)+(aBtnWidth/4);
+      newx:=newx+((aBtnWidth/2)/2)+((aBtnWidth/1.25)/2)+aGap;
 
-      fBtnBallSize:=tDlgInputButton.Create(self,aBtnWidth,aBtnHeight,newx,newy);
+      fBtnBallSpeed:=tDlgInputButton.Create(self,aBtnWidth/1.25,aBtnHeight,newx,newy);
+      fBtnBallSpeed.Projection:=TProjection.Screen;
+      fBtnBallSpeed.Parent:=self;
+      fBtnBallSpeed.MaterialSource:=dlgMaterial.Buttons.Button;
+      fBtnBallSpeed.TextColor:=dlgMaterial.Buttons.TextColor.Color;
+      fBtnBallSpeed.FontSize:=dlgMaterial.FontSize;
+      fBtnBallSpeed.LabelSize:=dlgMaterial.FontSize/1.2;
+      fBtnBallSpeed.LabelColor:=dlgMaterial.TextColor.Color;
+      fBtnBallSpeed.BtnBitMap.Assign(dlgMaterial.Buttons.Rect.Texture);
+      fBtnBallSpeed.LabelText:='Ball Speed';
+      fBtnBallSpeed.Text:=IntToStr(fBallSpeed);
+      fBtnBallSpeed.OnClick:=DoBallSpeed;
+
+      newx:=newx+(aBtnWidth/1.25)+aGap;
+
+      fBtnBallSize:=tDlgInputButton.Create(self,aBtnWidth/1.25,aBtnHeight,newx,newy);
       fBtnBallSize.Projection:=TProjection.Screen;
       fBtnBallSize.Parent:=self;
       fBtnBallSize.MaterialSource:=dlgMaterial.Buttons.Button;
@@ -501,8 +525,11 @@ begin
       fBtnBallSize.Text:='Medium';
       fBtnBallSize.OnClick:=TogBallSize;
 
-      newx:=newx+(aBtnWidth+aGap);
-      fBtnPaddleSize:=tDlgInputButton.Create(self,aBtnWidth,aBtnHeight,newx,newy);
+   //   newx:=newx+((aBtnWidth/2)+aGap)+(aBtnWidth/4)-(aBtnWidth/8)+aGap;
+
+     newx:=newx+(aBtnWidth/1.25)+aGap;
+
+      fBtnPaddleSize:=tDlgInputButton.Create(self,aBtnWidth/1.25,aBtnHeight,newx,newy);
       fBtnPaddleSize.Projection:=TProjection.Screen;
       fBtnPaddleSize.Parent:=self;
       fBtnPaddleSize.MaterialSource:=dlgMaterial.Buttons.Button;
@@ -633,6 +660,10 @@ begin
   fBtnBalls.Free;
   fBtnBalls:=nil;
 
+  fBtnBallSpeed.CleanUp;
+  fBtnBallSpeed.Free;
+  fBtnBallSpeed:=nil;
+
   fBtnGameMode.CleanUp;
   fBtnGameMode.Free;
   fBtnGameMode:=nil;
@@ -715,6 +746,37 @@ begin
       fDlgUp:=false;
 end;
 
+
+procedure TSpaceBallz.DoBallSpeed(sender: TObject);
+begin
+  //open up a numsel..
+if fDlgUp then exit;
+if fGameRunning then exit;
+
+     if not assigned(NumSelDlg) then
+        begin
+          NumSelDlg:=tDlgNumSel.Create(self,fmat,height,height/1.25,Width/2,Height/2);
+          NumSelDlg.OnDone:=BallSpeedDone;
+          NumSelDlg.Parent:=self.Parent;
+          NumSelDlg.Position.Z:=-2;
+          NumSelDlg.Opacity:=0.85;
+          NumSelDlg.Visible:=true;
+          fDlgUp:=true;
+        end;
+
+end;
+
+procedure TSpaceBallz.BallSpeedDone(sender: TObject);
+begin
+      fBallSpeed:=NumSelDlg.Num;
+      fBtnBallSpeed.Text:=IntToStr(fBallSpeed);
+      NumSelDlg.Visible:=false;
+      Tron.KillNumSel;
+      fDlgUp:=false;
+end;
+
+
+
 procedure TSpaceBallz.ReSizeBalls;
 var
 i:integer;
@@ -735,7 +797,7 @@ begin
 
   SetLength(fBalls,fNumBalls);
 
-  aLaunchDelay:=10;
+  aLaunchDelay:=2;
   newy:=((Height/2)*-1)+((aSize*3)+(aSize));
   for I := Low(fBalls) to High(fBalls) do
    begin
@@ -748,6 +810,7 @@ begin
    MaterialsDm.tmGlobeImg.Texture.FlipVertical;//look different
    fBalls[i].MaterialSource:=MaterialsDm.tmGlobeImg;
    fBalls[i].BallSize:=fBallSize;
+   fBalls[i].Visible:=false;
    fBalls[i].Parent:=self;
    end;
 end;
@@ -865,11 +928,11 @@ end;
    begin
     fBalls[i].Position.Y:=fBallAreaTop;
     fBalls[i].Position.X:=0;
-    fBalls[i].Angle:=1;
+    fBalls[i].Angle:=fBallSpeed/2;
     fBalls[i].fHDirection:=aHd;
     fBalls[i].fVDirection:=0;
     fBalls[i].fLaunchDelay:=i*10;
-    fBalls[i].Step:=4;
+    fBalls[i].Step:=fBallSpeed;
     fBalls[i].Launched:=false;
     if fBalls[i].BallSize<>fBallSize then
        begin
@@ -897,7 +960,7 @@ end;
                 fBalls[aBallNum].Angle := 1;
                 fBalls[aBallNum].fHDirection := aHd;
                 fBalls[aBallNum].fVDirection := 0;
-                fBalls[aBallNum].Step := 4;
+                fBalls[aBallNum].Step := fBallSpeed;
                 fBalls[aBallNum].Launched := false;
                 if fBalls[aBallNum].BallSize <> fBallSize then
                 begin
@@ -927,6 +990,7 @@ end;
 
 
   fBtnBalls.Visible:=false;
+  fBtnBallSpeed.Visible:=false;
   fBtnBallSize.Visible:=false;
   fBtnPaddleSize.Visible:=false;
   fBtnGameMode.Visible:=false;
@@ -956,6 +1020,7 @@ begin
     fBalls[i].Angle:=1;
     fBalls[i].fHDirection:=aHd;
     fBalls[i].fVDirection:=0;
+    fBalls[i].Visible:=false;
     if aHd=0 then aHd:=1 else aHd:=0;
    end;
  fGameRunning:=false;
@@ -969,6 +1034,7 @@ begin
 
    if fGameMode=0 then
    fBtnBalls.Visible:=true;
+  fBtnBallSpeed.Visible:=true;
    fBtnBallSize.Visible:=true;
    fBtnPaddleSize.Visible:=true;
    fBtnGameMode.Visible:=true;
@@ -1072,7 +1138,11 @@ begin
    end else
      begin
        if fBalls[i].fLaunchDelay>0 then
-         Dec(fBalls[i].fLaunchDelay) else fBalls[i].Launched:=true;
+         Dec(fBalls[i].fLaunchDelay) else
+          begin
+           fBalls[i].Launched:=true;
+           fBalls[i].Visible:=true;
+          end;
      end;
   end;
 
@@ -1100,7 +1170,7 @@ begin
        result:=true;
        if (aY>=(fLeftPaddle.Position.Y-fBalls[aBall].Height)) and (aY<=(fLeftPaddle.Position.Y+fBalls[aBall].Height)) then
        begin
-        fBalls[aBall].Angle:=1;
+        fBalls[aBall].Angle:=fBallSpeed/2;
         if fBalls[aBall].fLastY<>aY then
           fBalls[aBall].fLastY:=aY else
               fBalls[aBall].Angle:=0.5;
@@ -1110,8 +1180,8 @@ begin
 
         end else
          begin
-         fBalls[aBall].Angle:=2;
-         fBalls[aBall].fStep:=4;
+         fBalls[aBall].Angle:=fBallSpeed/2;
+         fBalls[aBall].fStep:=fBallSpeed;
          if aY>fLeftPaddle.Position.Y then fBalls[aBall].VertDirection:=0 else fBalls[aBall].VertDirection:=1;
          end;
 
@@ -1126,7 +1196,7 @@ begin
           result:=true;
           if (aY>=(fRightPaddle.Position.Y-fBalls[aBall].Height)) and (aY<=(fRightPaddle.Position.Y+fBalls[aBall].Height)) then
            begin
-           fBalls[aBall].Angle:=1;
+           fBalls[aBall].Angle:=fBallSpeed/2;
             if fBalls[aBall].fLastY<>aY then
                    fBalls[aBall].fLastY:=aY else
                         fBalls[aBall].Angle:=0.5;
@@ -1134,8 +1204,8 @@ begin
            if fBalls[aBall].fStep>fBalls[aBall].fMaxStep then fBalls[aBall].fStep:=fBalls[aBall].fMaxStep;
            end else
             begin
-            fBalls[aBall].Angle:=2;
-            fBalls[aBall].fStep:=4;
+            fBalls[aBall].Angle:=fBallSpeed/2;
+            fBalls[aBall].fStep:=fBallSpeed;
             if aY>fRightPaddle.Position.Y then fBalls[aBall].VertDirection:=0 else fBalls[aBall].VertDirection:=1;
             end;
          end;
