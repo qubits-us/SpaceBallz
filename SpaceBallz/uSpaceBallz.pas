@@ -172,9 +172,9 @@ begin
    begin
       fLevels[i]:=tGameLevel.Create;
      if i=0 then
-     fLevels[i].fLevelSeconds:=100
+     fLevels[i].fLevelSeconds:=1
      else
-     fLevels[i].fLevelSeconds:=1000*I;//every 10 seconds
+     fLevels[i].fLevelSeconds:=300*I;//every 10 seconds
      fLevels[i].fLevelBalls:=1;//add one more ball
    end;
 
@@ -238,8 +238,8 @@ begin
   fHDirection:=0;
   fVDirection:=0;
   fAngle:=0;
-  fStep:=2;
-  fMaxStep:=10;
+  fStep:=4;
+  fMaxStep:=12;
   fLastY:=0;
   fBallSize:=1;
 
@@ -275,7 +275,7 @@ begin
   Parent:=TForm3d(sender);
   fMat:=dlgMaterial;
   fGameTmr:=TInertiaTimer.Create;
-  fGameTmr.Interval:=10;
+  fGameTmr.Interval:=33;//30 fps
   fGameTmr.OnTimer:=GameStep;
   fGameDef:=TGameDefinition.Create;
   Width:=aWidth;
@@ -854,7 +854,7 @@ end;
   fMins:=0;
   fClockTick:=0;
   fGameClock.Text:='00:00';
-  fStartDelay:=50;
+  fStartDelay:=90;//3secs
   aHd:=0;//horz dir
   if Length(fBalls)<>fNumBalls then ResizeBalls;
 
@@ -869,7 +869,7 @@ end;
     fBalls[i].fHDirection:=aHd;
     fBalls[i].fVDirection:=0;
     fBalls[i].fLaunchDelay:=i*10;
-    fBalls[i].Step:=2;
+    fBalls[i].Step:=4;
     fBalls[i].Launched:=false;
     if fBalls[i].BallSize<>fBallSize then
        begin
@@ -897,7 +897,7 @@ end;
                 fBalls[aBallNum].Angle := 1;
                 fBalls[aBallNum].fHDirection := aHd;
                 fBalls[aBallNum].fVDirection := 0;
-                fBalls[aBallNum].Step := 2;
+                fBalls[aBallNum].Step := 4;
                 fBalls[aBallNum].Launched := false;
                 if fBalls[aBallNum].BallSize <> fBallSize then
                 begin
@@ -995,7 +995,7 @@ begin
 
 
 
-     if fClockTick<99 then Inc(fClockTick) else
+     if fClockTick<30 then Inc(fClockTick) else
        begin
        fCLockTick:=0;
        if fSecs<60 then Inc(fSecs) else
@@ -1085,7 +1085,7 @@ end;
 
 function TSpaceBallz.PaddleCollision(aSide: Byte; aY: Single;aBall:integer): Boolean;
 var
-aTop,aBottom:single;
+aTop,aBottom,aMiddle:single;
 begin
 //
   result:=false;
@@ -1094,6 +1094,7 @@ begin
       //check left
       aTop:=fLeftPaddle.Position.Y+fLeftPaddle.Height/2;
       aBottom:=fLeftPaddle.Position.Y-fLeftPaddle.Height/2;
+      aMiddle:=aTop-aBottom;
       if (aY>=aBottom) and (aY<=aTop) then
       begin
        result:=true;
@@ -1110,7 +1111,7 @@ begin
         end else
          begin
          fBalls[aBall].Angle:=2;
-         fBalls[aBall].fStep:=2;
+         fBalls[aBall].fStep:=4;
          if aY>fLeftPaddle.Position.Y then fBalls[aBall].VertDirection:=0 else fBalls[aBall].VertDirection:=1;
          end;
 
@@ -1134,7 +1135,7 @@ begin
            end else
             begin
             fBalls[aBall].Angle:=2;
-            fBalls[aBall].fStep:=2;
+            fBalls[aBall].fStep:=4;
             if aY>fRightPaddle.Position.Y then fBalls[aBall].VertDirection:=0 else fBalls[aBall].VertDirection:=1;
             end;
          end;
