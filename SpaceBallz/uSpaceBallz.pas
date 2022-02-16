@@ -100,6 +100,8 @@ type
        fLoopDone:TEvent;
        fMat:TDlgMaterial;
        fGameTmr:TInertiaTimer;
+       fTopField:tImage3d;
+       fBottomField:TImage3d;
        fIm:TImage3d;
        fTxt:TText3d;
        fNumBalls:byte;
@@ -118,6 +120,7 @@ type
        fMins:word;
        fBestTime:word;
        fStartDelay:byte;
+       fFieldDelay:byte;
        fGameMode:byte;
        fBtnStart:tDlgButton;
        fBtnClose:tDlgButton;
@@ -168,7 +171,7 @@ type
 
 implementation
 
-uses dmMaterials,uGlobs;
+uses dmMaterials,uGlobs,uDlg3dTextures;
 
 Constructor TGameDefinition.Create;
 var
@@ -267,8 +270,10 @@ var
 aGap:Single;
 aBtnWidth,aBtnHeight:single;
 aSlideW,aSlideH:single;
+aFieldH,aFieldW:single;
 newx,newy:single;
 i:integer;
+tmpBitmap:tBitmap;
 
 begin
   //create
@@ -322,6 +327,37 @@ begin
   aSlideH:=Height-(aBtnHeight*2);
   aBtnWidth:=aBtnWidth-aGap;
 
+  aFieldH:=aBtnHeight/4;
+  aFieldW:=aBtnWidth*6;
+
+
+  fTopField:=TImage3d.Create(nil);
+  fTopField.Projection:=tProjection.Screen;
+   tmpBitmap:=MakeTexture(aFieldW,aFieldH,3,2,20,0);
+  fTopField.Bitmap.Assign(tmpBitmap);
+  fTopField.Position.Z:=2;
+  fTopField.Width:=aFieldW;
+  fTopField.Height:=aFieldH;
+  fTopField.Position.X:=0;//center
+  fTopField.Position.Y:=0;
+  fTopField.HitTest:=false;
+  fTopField.Visible:=false;
+  fTopField.Parent:=self;
+
+  fBottomField:=TImage3d.Create(nil);
+  fBottomField.Projection:=tProjection.Screen;
+  fBottomField.Bitmap.Assign(tmpBitmap);
+  tmpBitmap.Free;
+  fBottomField.Position.Z:=2;
+  fBottomField.Width:=aFieldW;
+  fBottomField.Height:=aFieldH;
+  fBottomField.Position.X:=0;//center
+  fBottomField.Position.Y:=0;
+  fBottomField.HitTest:=false;
+  fBottomField.Visible:=false;
+  fBottomField.Parent:=self;
+
+
 
 
   fBallMaxSize:=aBtnHeight;
@@ -348,7 +384,8 @@ begin
    end;
 
      //top play area
-    fBallAreaTop:=((Height/2)*-1)+fBalls[0].Height+aBtnHeight+aGap;
+    fBallAreaTop:=((Height/2)*-1)+fBalls[0].Height+aBtnHeight+aGap+aFieldH;
+    fTopField.Position.Y:=fBallAreaTop-(fBalls[0].Height/2);
 
   newy:=0;
   newx:=((Width/2)*-1)+(aSlideW/2)+aGap;//left
@@ -412,10 +449,10 @@ begin
       fGameClock:=tDlgButton.Create(self,aBtnWidth,aBtnHeight,newx,newy);
       fGameClock.Projection:=TProjection.Screen;
       fGameClock.Parent:=self;
-      fGameClock.MaterialSource:=dlgMaterial.Buttons.Button;
+    //  fGameClock.MaterialSource:=dlgMaterial.Buttons.Button;
       fGameClock.TextColor:=dlgMaterial.Buttons.TextColor.Color;
       fGameClock.FontSize:=dlgMaterial.FontSize;
-      fGameClock.BtnBitMap.Assign(dlgMaterial.Buttons.Rect.Texture);
+     // fGameClock.BtnBitMap.Assign(dlgMaterial.Buttons.Rect.Texture);
       fGameClock.Text:='00:00';
       fGameClock.OnClick:=nil;
 
@@ -425,10 +462,10 @@ begin
       fGameBest:=tDlgButton.Create(self,aBtnWidth,aBtnHeight,newx,newy);
       fGameBest.Projection:=TProjection.Screen;
       fGameBest.Parent:=self;
-      fGameBest.MaterialSource:=dlgMaterial.Buttons.Button;
+     // fGameBest.MaterialSource:=dlgMaterial.Buttons.Button;
       fGameBest.TextColor:=dlgMaterial.Buttons.TextColor.Color;
       fGameBest.FontSize:=dlgMaterial.FontSize;
-      fGameBest.BtnBitMap.Assign(dlgMaterial.Buttons.Rect.Texture);
+     // fGameBest.BtnBitMap.Assign(dlgMaterial.Buttons.Rect.Texture);
       fGameBest.Text:='00:00';
       fGameBest.OnClick:=nil;
 
@@ -436,8 +473,9 @@ begin
 
 
       newy:=((Height/2))-((aBtnHeight/2)+(Height/55)+(aGap*2));
-      fBallAreaBottom:=newy-fBalls[0].Height;
-
+      fBallAreaBottom:=newy-fBalls[0].Height-aFieldH;
+      fBottomField.Position.Y:=fBallAreaBottom;
+      fBallAreaBottom:=fBallAreaBottom-aFieldH;
 
       newx:=((Width/2))-(aSlideW/2)-aGap;//right
       newx:=newx-aSlideW-(aBtnHeight/4)-aGap;
@@ -683,6 +721,9 @@ begin
   fIm.Free;
   fIm:=nil;
 
+  fTopField.Free;
+  fBottomField.Free;
+
 
 
   fWebTxt.Text:='';
@@ -917,7 +958,8 @@ end;
   fMins:=0;
   fClockTick:=0;
   fGameClock.Text:='00:00';
-  fStartDelay:=90;//3secs
+  fStartDelay:=60;//2secs
+  fFieldDelay:=20;//less than half of start delay
   aHd:=0;//horz dir
   if Length(fBalls)<>fNumBalls then ResizeBalls;
 
@@ -1039,6 +1081,8 @@ begin
    fBtnPaddleSize.Visible:=true;
    fBtnGameMode.Visible:=true;
    fBtnStart.Text:='Start';
+   fTopField.Visible:=false;
+   fBottomField.Visible:=false;
 
 end;
 
@@ -1056,6 +1100,17 @@ begin
   if fStartDelay>0 then
      begin
        Dec(fStartDelay);
+       if fFieldDelay>0 then Dec(fFieldDelay) else
+         begin
+         fFieldDelay:=20;
+         if not fBottomField.Visible then fBottomField.Visible:=true else
+          begin
+           fTopField.Visible:=true;
+           fFieldDelay:=0;
+          end;
+
+         end;
+
        exit;
      end;
 
@@ -1064,7 +1119,7 @@ begin
      if fClockTick<30 then Inc(fClockTick) else
        begin
        fCLockTick:=0;
-       if fSecs<60 then Inc(fSecs) else
+       if fSecs<59 then Inc(fSecs) else
         begin
          Inc(fMins);
          fSecs:=0;
