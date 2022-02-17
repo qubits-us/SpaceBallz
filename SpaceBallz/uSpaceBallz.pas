@@ -72,7 +72,8 @@ type
       fAngle:single;
       fStep:single;
       fMaxStep:single;
-      fLastY:single;
+      fLastLY:single;
+      fLastRY:single;
       fLaunched:Boolean;
       fLaunchDelay:word;
       fBallSize:byte;
@@ -250,7 +251,8 @@ begin
   fAngle:=0;
   fStep:=4;
   fMaxStep:=MAX_SPEED;
-  fLastY:=0;
+  fLastLY:=0;
+  fLastRY:=0;
   fBallSize:=1;
 
 
@@ -1221,13 +1223,13 @@ begin
       aBottom:=fLeftPaddle.Position.Y-fLeftPaddle.Height/2;
       aMiddle:=aTop-aBottom;
       if (aY>=aBottom) and (aY<=aTop) then
-      begin
+       begin
        result:=true;
        if (aY>=(fLeftPaddle.Position.Y-fBalls[aBall].Height)) and (aY<=(fLeftPaddle.Position.Y+fBalls[aBall].Height)) then
-       begin
+        begin
         fBalls[aBall].Angle:=fBallSpeed/2;
-        if fBalls[aBall].fLastY<>aY then
-          fBalls[aBall].fLastY:=aY else
+        if fBalls[aBall].fLastLY<>aY then
+          fBalls[aBall].fLastLY:=aY else
               fBalls[aBall].Angle:=0.5;
 
         fBalls[aBall].fStep:=fBalls[aBall].fStep*2;
@@ -1235,36 +1237,57 @@ begin
 
         end else
          begin
-         fBalls[aBall].Angle:=fBallSpeed/2;
-         fBalls[aBall].fStep:=fBallSpeed;
-         if aY>fLeftPaddle.Position.Y then fBalls[aBall].VertDirection:=0 else fBalls[aBall].VertDirection:=1;
+         if fBalls[aBall].fLastLY=aY then
+               begin
+               fBalls[aBall].Angle:=fBallSpeed/3;
+               fBalls[aBall].fStep:=fBalls[aBall].fStep*2;
+                 if fBalls[aBall].fStep>fBalls[aBall].fMaxStep then fBalls[aBall].fStep:=fBalls[aBall].fMaxStep;
+               end
+                 else
+                 begin
+                  fBalls[aBall].fLastLY:=aY;
+                  fBalls[aBall].Angle:=fBallSpeed/2;
+                  fBalls[aBall].fStep:=fBallSpeed;
+                   if aY>fLeftPaddle.Position.Y then fBalls[aBall].VertDirection:=0 else fBalls[aBall].VertDirection:=1;
+                 end;
          end;
 
-      end;
+       end;
       end else
         begin
         //check right
         aTop:=fRightPaddle.Position.Y+fRightPaddle.Height/2;
         aBottom:=fRightPaddle.Position.Y-fRightPaddle.Height/2;
+        aMiddle:=aTop-aBottom;
          if (aY>=aBottom) and (aY<=aTop) then
          begin
           result:=true;
           if (aY>=(fRightPaddle.Position.Y-fBalls[aBall].Height)) and (aY<=(fRightPaddle.Position.Y+fBalls[aBall].Height)) then
            begin
            fBalls[aBall].Angle:=fBallSpeed/2;
-            if fBalls[aBall].fLastY<>aY then
-                   fBalls[aBall].fLastY:=aY else
+            if fBalls[aBall].fLastRY<>aY then
+                   fBalls[aBall].fLastRY:=aY else
                         fBalls[aBall].Angle:=0.5;
            fBalls[aBall].fStep:=fBalls[aBall].fStep*2;
            if fBalls[aBall].fStep>fBalls[aBall].fMaxStep then fBalls[aBall].fStep:=fBalls[aBall].fMaxStep;
            end else
             begin
-            fBalls[aBall].Angle:=fBallSpeed/2;
-            fBalls[aBall].fStep:=fBallSpeed;
-            if aY>fRightPaddle.Position.Y then fBalls[aBall].VertDirection:=0 else fBalls[aBall].VertDirection:=1;
+             if fBalls[aBall].fLastRY=aY then
+                begin
+                 fBalls[aBall].Angle:=fBallSpeed/3;
+                 fBalls[aBall].fStep:=fBalls[aBall].fStep*2;
+                 if fBalls[aBall].fStep>fBalls[aBall].fMaxStep then fBalls[aBall].fStep:=fBalls[aBall].fMaxStep;
+                 end else
+                  begin
+                   fBalls[aBall].fLastRY:=aY;
+                   fBalls[aBall].Angle:=fBallSpeed/2;
+                   fBalls[aBall].fStep:=fBallSpeed;
+                   if aY>fRightPaddle.Position.Y then fBalls[aBall].VertDirection:=0 else fBalls[aBall].VertDirection:=1;
+                  end;
             end;
          end;
         end;
+
 
 end;
 
