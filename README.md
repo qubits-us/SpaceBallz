@@ -16,3 +16,5 @@ Happy Birthday DELPHI!!!<br>
 2.14.2022<br>
 
 ![sbz](https://user-images.githubusercontent.com/97798670/156291199-afe3c627-4ca1-4b77-bc72-72e6ce23ad6d.jpg)
+<br><br>
+Delphi is a registered trademark of Embarcadero, Inc.
