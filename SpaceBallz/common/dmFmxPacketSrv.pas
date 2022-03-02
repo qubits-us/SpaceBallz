@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.SyncObjs, System.Generics.Collections, Ics.Fmx.OverbyteIcsWndControl,System.IOUtils,
-   Ics.Fmx.OverbyteIcsWSocket,Ics.Fmx.OverbyteIcsWSocketS,uPacketDefs,uSpaceBallzData, OverbyteIcsLogger;
+   Ics.Fmx.OverbyteIcsWSocket,Ics.Fmx.OverbyteIcsWSocketS,uPacketDefs,uSpaceBallzData;
 
 
 
@@ -35,7 +35,6 @@ type
 type
   TSrvCommsDM = class(TDataModule)
     srvSock: TWSocketServer;
-    srvLog: TIcsLogger;
     procedure srvSockClientCreate(Sender: TObject; Client: TWSocketClient);
     procedure srvSockClientConnect(Sender: TObject; Client: TWSocketClient; Error: Word);
     procedure srvSockClientDisconnect(Sender: TObject; Client: TWSocketClient; Error: Word);
@@ -88,7 +87,7 @@ implementation
 
 {$R *.dfm}
 
-uses uGlobs;
+uses uGlobs,uEventLogging;
 
 procedure TSrvCommsDM.DataModuleCreate(Sender: TObject);
 begin
@@ -411,7 +410,7 @@ end;
 procedure TSrvCommsDM.LogMsg(const Msg: string);
 begin
 
-     srvLog.DoDebugLog(nil,loDestFile,'DEBUG: '+Msg);
+  Logger.Log(Msg);
 
     LockDisplay.Enter;//one at a time boys..
     try
