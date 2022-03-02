@@ -1,0 +1,14 @@
+object MainFrm: TMainFrm
+  Left = 0
+  Top = 0
+  Caption = 'SapceBallz Tournaments'
+  Color = claBlack
+  ClientHeight = 322
+  ClientWidth = 484
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = Form3DCreate
+  OnClose = Form3DClose
+  DesignerMasterStyle = 0
+end
