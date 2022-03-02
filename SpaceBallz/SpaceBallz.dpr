@@ -12,7 +12,14 @@ uses
   uInertiaTimer in '..\3dBase\common\uInertiaTimer.pas',
   uSpaceBallz in 'uSpaceBallz.pas',
   uNumPadDlg in '..\3dBase\common\uNumPadDlg.pas',
-  uNumSelectDlg in '..\3dBase\common\uNumSelectDlg.pas';
+  uNumSelectDlg in '..\3dBase\common\uNumSelectDlg.pas',
+  uPacketClientDm in 'common\uPacketClientDm.pas' {PacketClientDm: TDataModule},
+  uPacketDefs in 'common\uPacketDefs.pas',
+  uSpaceBallzData in 'common\uSpaceBallzData.pas',
+  uClientCommsObj in 'common\uClientCommsObj.pas',
+  uConnectDlg in 'uConnectDlg.pas',
+  uIPChangeDlg in '..\3dBase\common\uIPChangeDlg.pas',
+  uKeyboardDlg in '..\3dBase\common\uKeyboardDlg.pas';
 
 {$R *.res}
 

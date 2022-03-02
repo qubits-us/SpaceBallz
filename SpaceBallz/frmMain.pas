@@ -15,7 +15,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms3D, FMX.Types3D, FMX.Forms, FMX.Graphics,
   FMX.Dialogs,FMX.MaterialSources,FMX.Objects,FMX.Layers3D,FMX.Objects3D,
-  System.UIConsts,dmMaterials,System.SyncObjs, System.Math.Vectors,
+  System.UIConsts,dmMaterials,System.SyncObjs, System.Math.Vectors,System.IniFiles,System.IOUtils,
   FMX.Controls3D,FMX.Platform{$IFDEF ANDROID},FMX.Platform.Android{$ENDIF},
   uDlg3dCtrls,uSpaceBallz,uDlg3dTextures,uGlobs;
 
@@ -40,6 +40,9 @@ var
 implementation
 
 {$R *.fmx}
+
+uses
+  uPacketClientDm;
 
 
 
@@ -83,6 +86,8 @@ end;
 
 
 procedure TMainFrm.Form3DClose(Sender: TObject; var Action: TCloseAction);
+var
+aIni:TInifile;
 begin
 //all done
   if Assigned(SpaceBallz) then SpaceBallz.Free;
@@ -92,7 +97,23 @@ begin
 
   MaterialsDm.Free;
 
+
+
+  PacketCli.Free;
+
   Tron.Free;
+
+//save connection settings..
+aini:=TIniFile.Create(TPath.Combine(DataPath,'SpaceBallz.ini'));
+aIni.WriteString('Server','IP',SrvIP);
+aIni.WriteString('Server','Port',SrvPort);
+aIni.WriteString('Server','Nic',GamerNic);
+aIni.WriteString('Server','Hash',GamerHash);
+aIni.Free;
+
+
+
+
 
   {$IFDEF ANDROID}
   MainActivity.finish;
@@ -100,6 +121,8 @@ begin
 end;
 
 procedure TMainFrm.Form3DCreate(Sender: TObject);
+var
+aIni:TIniFile;
 begin
 
 //in the beginning, there was only code..
@@ -108,6 +131,34 @@ begin
    MaterialsDm:=TMaterialsDm.Create(self);//pics
 
    DlgMaterial:=tDlgMaterial.Create(self);//holds pics
+
+   PacketCli:=tPacketClientDM.Create(self);
+
+DataPath:=TPath.GetHomePath;
+DataPath:=TPath.Combine(DataPath,'SpaceBallz');
+if not TDirectory.Exists(DataPath,true) then
+        tDirectory.CreateDirectory(DataPath);
+
+aini:=TIniFile.Create(TPath.Combine(DataPath,'SpaceBallz.ini'));
+aIni.WriteString('SpaceBallz','Version','1.0');
+SrvIP:=aIni.ReadString('Server','IP','192.168.0.51');
+SrvPort:=aIni.ReadString('Server','Port','9000');
+GamerNic:=aIni.ReadString('Server','Nic','astro');
+GamerHash:=aIni.ReadString('Server','Hash','');
+aIni.Free;
+
+ PacketCli.Gamer.Nic:=GamerNic;
+ if GamerHash='' then
+   begin
+      GamerHash:='SpaceBallz';
+      PacketCli.Gamer.SmokeHash(GamerHash);
+      GamerHash:=PacketCli.Gamer.Hash;
+   end else PacketCli.Gamer.Hash:=GamerHash;
+ PacketCli.Port:=StrToInt(SrvPort);
+ PacketCli.IP:=SrvIP;
+
+
+
 
    //hook up our touch event
    OnTouch:=FormTouch;

@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{C9B5E960-ABB6-4F5A-A703-57BB7DA26F7B}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="SpaceBallz.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="TournamentServer\SpaceBallzSrvr.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="SpaceBallz">
+        <MSBuild Projects="SpaceBallz.dproj"/>
+    </Target>
+    <Target Name="SpaceBallz:Clean">
+        <MSBuild Projects="SpaceBallz.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SpaceBallz:Make">
+        <MSBuild Projects="SpaceBallz.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SpaceBallzSrvr">
+        <MSBuild Projects="TournamentServer\SpaceBallzSrvr.dproj"/>
+    </Target>
+    <Target Name="SpaceBallzSrvr:Clean">
+        <MSBuild Projects="TournamentServer\SpaceBallzSrvr.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SpaceBallzSrvr:Make">
+        <MSBuild Projects="TournamentServer\SpaceBallzSrvr.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="SpaceBallz;SpaceBallzSrvr"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="SpaceBallz:Clean;SpaceBallzSrvr:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="SpaceBallz:Make;SpaceBallzSrvr:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

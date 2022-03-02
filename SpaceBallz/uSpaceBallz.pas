@@ -17,47 +17,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms3D, FMX.Types3D, FMX.Forms, FMX.Graphics,
   FMX.Dialogs, System.Math.Vectors, FMX.Ani, FMX.Controls3D,FMX.Surfaces,
   FMX.MaterialSources, FMX.Objects3D, FMX.Effects, FMX.Filter.Effects,FMX.Layers3D,
-  FMX.Objects,uDlg3dCtrls,uNumSelectDlg,uInertiaTimer;
-
-Const
-   MAX_BALLS=12;
-   MAX_SPEED=12;
-   MAX_LEVELS=12;
-
-
-type
-    TGameLevel = class
-      private
-        fLevelSeconds:integer;
-        fLevelBalls:byte;
-      protected
-      public
-      property Seconds:integer read fLevelSeconds write fLEvelSeconds;
-      property Balls:byte read fLevelBalls write fLevelBalls;
-    end;
-
-
-type
-    TGameDefinition = class
-      private
-       fLevels: array [0..MAX_LEVELS-1] of tGameLevel;
-       fBallSize:byte;
-       fPaddleSize:byte;
-       fBallSpeed:single;
-      protected
-        function GetLevel(index:integer):tGameLevel;
-        procedure SetLevel(index:integer;aLevel:tGameLevel);
-        function CountBalls:byte;
-      public
-        constructor Create;
-        destructor  Destroy;override;
-      property Levels[index:integer]:TGameLevel read GetLevel write SetLevel;
-      property Balls:byte read CountBalls;
-      property BallSize:byte read fBallSize write fBallSize;
-      property PaddleSize:byte read fPaddleSize write fPaddleSize;
-      property BallSpeed:single read fBallSpeed write fBallSpeed;
-    end;
-
+  FMX.Objects,uDlg3dCtrls,uNumSelectDlg,uInertiaTimer,uSpaceBallzData;
 
 
 
@@ -97,6 +57,7 @@ type
     TSpaceBallz= class(TDummy)
       private
        fDlgUp:boolean;
+       fConnected:boolean;
        fGameRunning:Boolean;
        fLoopDone:TEvent;
        fMat:TDlgMaterial;
@@ -143,6 +104,15 @@ type
        fCloseEvent:TDlgDoneClick_Event;
        fCleanedUp:boolean;
       protected
+       procedure DoConnect(sender:tObject);
+       procedure ConnectCancel(sender:tObject);
+       procedure ConnectDone(sender:tObject);
+       procedure OnConnect(sender:tObject);
+       procedure OnError(sender:tObject;aMsg:String);
+       procedure ClearError(sender:tObject);
+       procedure OnBadHash(sender:tObject);
+       procedure OnNoEntries(sender:tObject);
+       procedure OnRecvGame(sender:tObject);
        procedure StartGame(sender:tObject);
        procedure EndGame;
        procedure GameStep(sender:tObject);
@@ -156,6 +126,7 @@ type
        procedure BallSpeedDone(sender:tObject);
        procedure ReSizeBalls;
        procedure TogPaddleSize(sender:tObject);
+       procedure SetPaddleSize;
        procedure TogBallSize(sender:tObject);
        procedure TogGameMode(sender:tObject);
 
@@ -172,67 +143,7 @@ type
 
 implementation
 
-uses dmMaterials,uGlobs,uDlg3dTextures;
-
-Constructor TGameDefinition.Create;
-var
-i:integer;
-begin
- //setup levels
- for I := Low(fLevels) to High(fLevels) do
-   begin
-      fLevels[i]:=tGameLevel.Create;
-     if i=0 then
-     fLevels[i].fLevelSeconds:=1
-     else
-     fLevels[i].fLevelSeconds:=300*I;//every 10 seconds
-     fLevels[i].fLevelBalls:=1;//add one more ball
-   end;
-
-
-
-
-end;
-
-Destructor TGameDefinition.Destroy;
-var
-i:integer;
-begin
-
-for I := Low(fLevels) to High(fLevels) do
-     fLevels[i].Free;
-
-Inherited;
-end;
-
-function TGameDefinition.GetLevel(index: integer): TGameLevel;
-begin
-  result:=nil;
-  if (index>-1) and (index<=(high(fLevels))) then
-     result:=fLevels[index];
-end;
-
-procedure TGameDefinition.SetLevel(index: integer; aLevel: TGameLevel);
-begin
-  //
-  if (index>-1) and (index<=(high(fLevels))) then
-      fLevels[index]:=aLevel;
-end;
-
-function TGameDefinition.CountBalls: Byte;
-var
-I: Integer;
-begin
-  result:=0;
-   for I := Low(fLevels) to High(fLevels) do
-    begin
-     result:=result+fLevels[i].Balls;
-    end;
-
-end;
-
-
-
+uses dmMaterials,uGlobs,uDlg3dTextures,uConnectDlg,uPacketClientDm;
 
 Constructor TSpaceBall.Create(aOwner: TComponent; aWidth: Single; aHeight: Single; ax: Single; ay: Single);
 begin
@@ -283,6 +194,7 @@ begin
   fCleanedUp:=false;
   fDlgUp:=False;
   fGameRunning:=false;
+  fConnected:=false;
   fLoopDone:=TEvent.Create(nil,true,true,'');
   //set our cam first always!!!
   Projection:=TProjection.Screen;
@@ -335,7 +247,7 @@ begin
 
   fTopField:=TImage3d.Create(nil);
   fTopField.Projection:=tProjection.Screen;
-   tmpBitmap:=MakeTexture(aFieldW,aFieldH,3,2,20,0);
+  tmpBitmap:=MakeTexture(aFieldW,aFieldH,3,2,20,0);
   fTopField.Bitmap.Assign(tmpBitmap);
   fTopField.Position.Z:=2;
   fTopField.Width:=aFieldW;
@@ -508,14 +420,15 @@ begin
       fBtnStart.Text:='Start';
       fBtnStart.OnClick:=StartGame;
       newx:=newx+(aBtnWidth+aGap)-(aBtnWidth/8)+aGap;
-
+      //was doing some funky things on robots till i fixed the text size..
       fBtnGameMode:=tDlgInputButton.Create(self,aBtnWidth/1.25,aBtnHeight,newx,newy);
       fBtnGameMode.Projection:=TProjection.Screen;
       fBtnGameMode.Parent:=self;
       fBtnGameMode.MaterialSource:=dlgMaterial.Buttons.Button;
+      fBtnGameMode.TextFixed:=true;
       fBtnGameMode.TextColor:=dlgMaterial.Buttons.TextColor.Color;
-      fBtnGameMode.FontSize:=dlgMaterial.FontSize;
-      fBtnGameMode.LabelSize:=dlgMaterial.FontSize/1.2;
+      fBtnGameMode.FontSize:=dlgMaterial.FontSize/1.5;
+      fBtnGameMode.LabelSize:=dlgMaterial.FontSize/1.5;
       fBtnGameMode.LabelColor:=dlgMaterial.TextColor.Color;
       fBtnGameMode.BtnBitMap.Assign(dlgMaterial.Buttons.Rect.Texture);
       fBtnGameMode.LabelText:='Game Mode';
@@ -747,6 +660,15 @@ begin
   fTxt:=nil;
 
   fCloseEvent:=nil;
+
+  fConnected:=false;
+  PacketCli.OnConnect:=nil;
+  PacketCli.OnCommError:=nil;
+  PacketCli.OnHashError:=nil;
+  PacketCli.OnNoEntries:=nil;
+
+
+
   Parent:=nil;
 
 end;
@@ -864,25 +786,48 @@ begin
   if fPaddleSize<2 then Inc(fPaddleSize) else fPaddleSize:=0;
 
    case fPaddleSize of
-   0:begin
-      fBtnPaddleSize.Text:='Small';
-      fLeftPaddle.Height:=fPaddleMaxSize/3;
-      fRightPaddle.Height:=fPaddleMaxSize/3;
-     end;
-   1:begin
-      fBtnPaddleSize.Text:='Medium';
-      fLeftPaddle.Height:=fPaddleMaxSize/2;
-      fRightPaddle.Height:=fPaddleMaxSize/2;
-     end;
-   2:begin
-      fBtnPaddleSize.Text:='Large';
-      fLeftPaddle.Height:=fPaddleMaxSize;
-      fRightPaddle.Height:=fPaddleMaxSize;
-     end;
+   SMALL_SIZE:begin
+              fBtnPaddleSize.Text:='Small';
+              fLeftPaddle.Height:=fPaddleMaxSize/3;
+              fRightPaddle.Height:=fPaddleMaxSize/3;
+              end;
+   MED_SIZE:begin
+            fBtnPaddleSize.Text:='Medium';
+            fLeftPaddle.Height:=fPaddleMaxSize/2;
+            fRightPaddle.Height:=fPaddleMaxSize/2;
+            end;
+   LRG_SIZE:begin
+            fBtnPaddleSize.Text:='Large';
+            fLeftPaddle.Height:=fPaddleMaxSize;
+            fRightPaddle.Height:=fPaddleMaxSize;
+            end;
    end;
 
 end;
 
+procedure TSpaceBallz.SetPaddleSize;
+begin
+  if fPaddleSize>2 then fPaddleSize:=2;
+
+   case fPaddleSize of
+   SMALL_SIZE:begin
+              fBtnPaddleSize.Text:='Small';
+              fLeftPaddle.Height:=fPaddleMaxSize/3;
+              fRightPaddle.Height:=fPaddleMaxSize/3;
+              end;
+   MED_SIZE:begin
+            fBtnPaddleSize.Text:='Medium';
+            fLeftPaddle.Height:=fPaddleMaxSize/2;
+            fRightPaddle.Height:=fPaddleMaxSize/2;
+            end;
+   LRG_SIZE:begin
+            fBtnPaddleSize.Text:='Large';
+            fLeftPaddle.Height:=fPaddleMaxSize;
+            fRightPaddle.Height:=fPaddleMaxSize;
+            end;
+   end;
+
+end;
 
 
 procedure TSpaceBallz.TogBallSize(sender: TObject);
@@ -890,15 +835,15 @@ begin
   if fBallSize<2 then Inc(fBallSize) else fBallSize:=0;
 
    case fBallSize of
-   0:begin
-      fBtnBallSize.Text:='Small';
-     end;
-   1:begin
-      fBtnBallSize.Text:='Medium';
-     end;
-   2:begin
-      fBtnBallSize.Text:='Large';
-     end;
+   SMALL_SIZE:begin
+               fBtnBallSize.Text:='Small';
+              end;
+   MED_SIZE:begin
+             fBtnBallSize.Text:='Medium';
+            end;
+   LRG_SIZE:begin
+             fBtnBallSize.Text:='Large';
+            end;
    end;
 
 end;
@@ -907,20 +852,128 @@ procedure TSpaceBallz.TogGameMode(sender: TObject);
 begin
   if fGameMode<2 then Inc(fGameMode) else fGameMode:=0;
     case fGameMode of
-    0:begin
-      fBtnGameMode.Text:='Practice';
-      fBtnBalls.Visible:=true;
-      end;
-    1:begin
-      fBtnGameMode.Text:='Levels';
-      fBtnBalls.Visible:=false;
-
-      end;
-    2:begin
-      fBtnGameMode.Text:='Tournaments';
-      fBtnBalls.Visible:=false;
-      end;
+    GM_PRACT:begin
+             fBtnGameMode.Text:='Practice';
+             fBtnBalls.Visible:=true;
+             fBtnBallSpeed.Visible:=true;
+             fBtnBallSize.Visible:=true;
+             fBtnPaddleSize.Visible:=true;
+             end;
+    GM_LEVELS:begin
+              fBtnGameMode.Text:='Levelz';
+              fBtnBalls.Visible:=false;
+              fBtnBallSpeed.Visible:=true;
+              fBtnBallSize.Visible:=true;
+              fBtnPaddleSize.Visible:=true;
+              end;
+    GM_TOURNI:begin
+              fBtnGameMode.Text:='Tourniz';
+              fBtnBalls.Visible:=false;
+              fBtnBallSpeed.Visible:=false;
+              fBtnBallSize.Visible:=false;
+              fBtnPaddleSize.Visible:=false;
+              end;
     end;
+end;
+
+
+
+procedure TSpaceBallz.DoConnect(sender: TObject);
+begin
+  //connect
+  if fDlgUp then exit;
+
+     if not Assigned(ConnectDlg) then
+         ConnectDlg:=TConnectDlg.Create(self,fmat,Height,Height/1.25,0,0);
+         ConnectDlg.Parent:=Self;
+         ConnectDlg.OnCancel:=ConnectCancel;
+         ConnectDlg.OnDone:=ConnectDone;
+         ConnectDlg.Visible:=true;
+         ConnectDlg.Position.Z:=-2;
+
+     fDlgUp:=true;
+
+
+
+end;
+
+procedure TSpaceBallz.ConnectCancel(sender: TObject);
+begin
+  //connect cancel
+  Tron.KillConnect;
+  fConnected:=false;
+  fDlgUp:=False;
+end;
+
+procedure TSpaceBallz.ConnectDone(sender: TObject);
+begin
+  //connect completed..
+  Tron.KillConnect;
+  fConnected:=true;
+  fGameDef.Consume(PacketCli.GameDef);
+ // ShowMessage(IntToStr(fGameDef.Levels[1].Seconds));
+  fGameDef.AdjSecs;
+ // ShowMessage(IntToStr(fGameDef.Levels[1].Seconds));
+  PacketCli.OnConnect:=OnConnect;
+  PacketCli.OnCommError:=OnError;
+  PacketCli.OnHashError:=OnBadHash;
+  PacketCli.OnNoEntries:=OnNoEntries;
+  PacketCli.OnRecvDef:=OnRecvGame;
+  fDlgUp:=False;
+
+end;
+
+procedure tSpaceBallz.OnConnect(sender: TObject);
+begin
+  //
+  PacketCli.UpdateScore;
+
+end;
+
+procedure tSpaceBallz.OnError(sender: TObject; aMsg: string);
+begin
+  //
+  fDlgUp:=true;
+  MsgOK(aMsg);
+  InfoDlg.OnClick:=ClearError;
+
+  fBtnStart.Text:='Start';
+
+  fConnected:=false;
+  PacketCli.ClientComms.Disconnect;
+  PacketCli.OnConnect:=nil;
+  PacketCli.OnCommError:=nil;
+  PacketCli.OnHashError:=nil;
+  PacketCli.OnNoEntries:=nil;
+end;
+
+procedure tSpaceBallz.ClearError(sender: TObject);
+begin
+  Tron.KillInfo(nil);
+  fDlgUp:=False;
+
+end;
+
+procedure tSpaceBallz.OnBadHash(sender: TObject);
+begin
+  //
+    OnError(nil,'Bad Password');
+end;
+
+procedure tSpaceBallz.OnNoEntries(sender: TObject);
+begin
+  //
+  OnError(nil,'No more entries.');
+end;
+
+procedure tSpaceBallz.OnRecvGame(sender: TObject);
+begin
+  //
+ fGameRunning:=false;
+ PacketCli.ClientComms.Disconnect;
+ fGameDef.Consume(PacketCli.GameDef);
+ fGameDef.AdjSecs;
+ fBtnStart.Text:='Start';
 end;
 
 
@@ -944,6 +997,11 @@ end;
       end else
         fNumBalls:=StrToInt(fBtnBalls.Text);
 
+    if (fGameMode=GM_TOURNI) AND (not fConnected) then
+      begin
+        DoConnect(nil);
+        exit;
+      end;
 
 
 
@@ -966,7 +1024,7 @@ end;
   if Length(fBalls)<>fNumBalls then ResizeBalls;
 
 
- if fGameMode=0 then
+ if fGameMode=GM_PRACT then
   begin
   for I := Low(fBalls) to High(fBalls) do
    begin
@@ -991,8 +1049,18 @@ end;
      begin
        //levels and tournaments.
        //balls get loaded based on game definition
+       if fGameMode=GM_TOURNI then
+         begin
+           fBallSpeed:=fGameDef.BallSpeed;
+           if fBallSpeed > 12 then fBallSpeed := 12;
+           if fBallSpeed = 0 then fBallSpeed := 4;
+           fBallSize:=fGameDef.BallSize;
+           if fBallSize > 2 then fBallSize := 2;
+           fPaddleSize:=fGameDef.PaddleSize;
+           SetPaddleSize;
+         end;
        aBallNum:=0;
-       for I := Low(fGameDef.fLevels) to High(fGameDef.fLevels) do
+       for I := 0 to MAX_LEVELS-1 do
          begin
           if fGameDef.Levels[i].Balls>0 then
             begin
@@ -1021,13 +1089,7 @@ end;
                 Inc(aBallNum);
               end;
             end;
-
-
          end;
-
-
-
-
      end;
 
 
@@ -1067,7 +1129,6 @@ begin
     fBalls[i].Visible:=false;
     if aHd=0 then aHd:=1 else aHd:=0;
    end;
- fGameRunning:=false;
 
     aGT:=fMins*60+fSecs;
     if aGT>fBestTime then
@@ -1076,15 +1137,26 @@ begin
       fGameBest.Text:=Format('%.2d',[fMins])+':'+Format('%.2d',[FSecs]);
       end;
 
-   if fGameMode=0 then
+   fTopField.Visible:=false;
+   fBottomField.Visible:=false;
+
+
+   if fGameMode=GM_PRACT then
    fBtnBalls.Visible:=true;
-  fBtnBallSpeed.Visible:=true;
+  if (fGameMode=GM_PRACT) or (fGameMode=GM_LEVELS) then
+   begin
+   fGameRunning:=false;
+   fBtnBallSpeed.Visible:=true;
    fBtnBallSize.Visible:=true;
    fBtnPaddleSize.Visible:=true;
    fBtnGameMode.Visible:=true;
    fBtnStart.Text:='Start';
-   fTopField.Visible:=false;
-   fBottomField.Visible:=false;
+   end else
+     begin
+       //tournamnets
+        PacketCli.Gamer.BestScore:=fBestTime;
+        PacketCli.ClientComms.Connect;
+     end;
 
 end;
 
