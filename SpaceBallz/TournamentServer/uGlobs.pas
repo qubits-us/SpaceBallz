@@ -14,7 +14,7 @@ uses
   FMX.MaterialSources,FMX.Objects, FMX.Dialogs,FMX.Layers3D,FMX.Objects3D,
   System.UIConsts,dmMaterials,System.SyncObjs, System.Math.Vectors,
   FMX.Controls3D,FMX.Platform{$IFDEF ANDROID},FMX.Platform.Android{$ENDIF},
-  uDlg3dCtrls,uDlg3dTextures,uNumSelectDlg,uSceneLeaderBoard,uConfigDlg;
+  uDlg3dCtrls,uDlg3dTextures,uNumSelectDlg,uSceneLeaderBoard,uConfigDlg,uEventLogging;
 
 
 
@@ -36,6 +36,7 @@ uses
 
 
 var
+  Logger:TEventLogger;
   LeaderBoard:TDlgLeaderBoard;
   ConfigDlg:TDlgConfig;
   NumSelDlg:TDlgNumSel;

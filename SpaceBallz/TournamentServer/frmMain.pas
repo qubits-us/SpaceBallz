@@ -35,7 +35,7 @@ implementation
 
 {$R *.fmx}
 
-uses dmMaterials,dmFMXPacketSrv,uSpaceBallzData;
+uses dmMaterials,dmFMXPacketSrv,uSpaceBallzData,uEventLogging;
 
 //get our scale
 function GetScreenScale: Single;var ScreenService: IFMXScreenService;
@@ -126,6 +126,8 @@ aIni.WriteBool('General','FullScreen',GoFullScreen);
 aIni.Free;
 
 
+Logger.Log('Shutting down..');
+Logger.Free;
 
   dlgMaterial.Free;
   dlgMaterial:=nil;
@@ -144,6 +146,7 @@ var
 aGamer:tGamer;
 aIni:TIniFile;
 aIp:String;
+ls:tLogSettings;
 begin
 //in the beginning, there was only code..
    System.ReportMemoryLeaksOnShutdown:=true;//catch me if you can.. :P
@@ -157,6 +160,14 @@ DataPath:=TPath.Combine(DataPath,'SpaceBallzSrv');
 if not TDirectory.Exists(DataPath,true) then
         tDirectory.CreateDirectory(DataPath);
 
+Logger:=tEventLogger.Create;
+ls.LogPath:=DataPath;
+ls.LoggingLevel:=0;
+ls.FlushInterval:=100;
+Logger.Initialize(ls);
+
+
+Logger.Log('SpaceBallz Server Starting up..');
 aini:=TIniFile.Create(TPath.Combine(DataPath,'SpaceBallz.ini'));
 aIni.WriteString('SpaceBallz','Version','1.0');
 //allow for overriding detected ip..
@@ -173,7 +184,7 @@ aIni.Free;
    SrvCommsDm:=TSrvCommsDm.Create(self);
    SrvCommsDm.LoadGameData;
    SrvCommsDm.srvSock.Listen;
-
+Logger.Log('Server is listening..');
 
    DlgMaterial:=tDlgMaterial.Create(self);//holds pics
 

@@ -16,7 +16,8 @@ uses
   uNumSelectDlg in '..\..\3dBase\common\uNumSelectDlg.pas',
   uConfigDlg in 'uConfigDlg.pas',
   uNumPadDlg in '..\..\3dBase\common\uNumPadDlg.pas',
-  uSpaceBallzData in '..\common\uSpaceBallzData.pas';
+  uSpaceBallzData in '..\common\uSpaceBallzData.pas',
+  uEventLogging in '..\common\uEventLogging.pas';
 
 {$R *.res}
 
