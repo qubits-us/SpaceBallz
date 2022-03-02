@@ -15,4 +15,4 @@ Delphi 11, Firemonkey3d, uses base3d, ICS, INDY<br>
 Happy Birthday DELPHI!!!<br>
 2.14.2022<br>
 
-![SpaceBallz](https://user-images.githubusercontent.com/97798670/154183152-719e7b03-c09c-4a66-bef5-db66a537acf1.jpg)
+![sbz](https://user-images.githubusercontent.com/97798670/156291199-afe3c627-4ca1-4b77-bc72-72e6ce23ad6d.jpg)
