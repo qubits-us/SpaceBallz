@@ -7,8 +7,7 @@ Juggle up to twelve spheres of galatic matter in outer space!!
 3 Game modes.<br>
 Practice - Can set number of balls.<br>
 Levels - A ball added every 10 seconds.<br>
-Tournaments -Game controlled by tournament server, Tournament server is a Windows 3d application, using ICS and has embedded leader board.<br>
-Displays top 12 gamers<br>
+Tournaments -Game controlled by tournament server, Tournament server is a Windows 3d application, using ICS and has embedded leader board, displays top 12 gamerz<br>
 
 
 Delphi 11, Firemonkey3d, uses base3d, ICS, INDY<br>
