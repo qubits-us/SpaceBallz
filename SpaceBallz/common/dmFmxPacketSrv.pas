@@ -97,8 +97,6 @@ LockQ:=TCriticalSection.Create;
 fLogList:=tStringList.Create;
 fPacketQue:=TQueue<tPacketData>.Create;
 GameData:=tGameData.Create;
-
-
 srvSock.Proto:='tcp';
 srvSock.Port:=ServerPort;
 srvSock.Addr:=ServerIp;
@@ -356,12 +354,14 @@ end;
 procedure TSrvCommsDM.piSendGameDef(Client: TPacketClient);
 var
 aPacket:TGameDefinitionPacket;
+gd:tGameDefinitionRec;
 begin
    FillPacketIdent(aPacket.hdr.Ident);
    aPacket.hdr.Command:=CMD_DEF;
    aPacket.hdr.Option:=0;
    aPacket.hdr.DataSize:=SizeOf(tGameDefinitionRec);
-   Move(GameData.GameDef,aPacket.gameDef,SizeOf(tGameDefinitionRec));
+   gd:=GameData.GameDef;
+   Move(gd,aPacket.gameDef,SizeOf(tGameDefinitionRec));
    Client.Send(@aPacket,SizeOf(TGameDefinitionPacket));
 end;
 

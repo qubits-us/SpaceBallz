@@ -106,11 +106,13 @@ type
 type
    tGameData = class
      private
+      fCrit:tCriticalSection;
       fGameDef:tGameDefinitionRec;
       fGameState:tGameState;
       fGamerz:TList<tGamer>;
       function    CountGamerz:integer;
       function    GetGamer(aIndex:integer):tGamer;
+      function    GiveGame:tGameDefinitionRec;
      public
       constructor Create;
       destructor  Destroy;override;
@@ -126,7 +128,7 @@ type
       procedure   UpdateGamer(aScore:word;aIndex:integer);
       property GamerCount:integer read CountGamerz;
       property Gamer[index:integer]:tGamer read GetGamer;
-      property GameDef:tGameDefinitionRec read fGameDef write fGameDef;
+      property GameDef:tGameDefinitionRec read GiveGame write EatGame;
    end;
 
     function FormatBestScore(aScore:word):string;
@@ -282,6 +284,7 @@ i:integer;
 begin
   inherited;
   //
+  fCrit:=tCriticalSection.Create;
   fGamerz:=tList<tGamer>.Create;
   fGamerz.Clear;
      //init fGameDef
@@ -310,13 +313,34 @@ begin
 
     fGamerz.Clear;
     fGamerz.Free;
+    fCrit.Free;
+
 
   inherited;
 end;
 
+
+//give up the game
+function tGameData.GiveGame: TGameDefinitionRec;
+begin
+ fCrit.Enter;
+ try
+  move(fgamedef,result,SizeOf(TGameDefinitionRec));
+ finally
+   fCrit.Leave;
+ end;
+
+end;
+
+//eat a game
 procedure tGameData.EatGame(const gamedef: TGameDefinitionRec);
 begin
+ fCrit.Enter;
+ try
   move(gamedef,fGameDef,SizeOf(TGameDefinitionRec));
+ finally
+   fCrit.Leave;
+ end;
 end;
 
 procedure tGameData.Take(const shit: tShit);
@@ -330,6 +354,8 @@ aSize:=aSize+SizeOf(tGameState);
 if Length(shit)>=aSize then
   begin
     //may be some good shit
+   fCrit.Enter;
+   try
     pile:=0;
     Move(shit[pile],fGameDef,SizeOf(tGameDefinitionRec));
     pile:=pile+SizeOf(tGameDefinitionRec);
@@ -346,6 +372,9 @@ if Length(shit)>=aSize then
            fGamerz.Add(aGamer);
          end;
       end;
+   finally
+     fCrit.Leave;
+   end;
   end;
 end;
 
@@ -355,6 +384,8 @@ aSize,pile,i:integer;
 aPeaceOf:tGamerRec;
 begin
 //sum it all up
+fCrit.Enter;
+try
 fGameState.GamerCount:=fGamerz.Count;
 aSize:=SizeOf(tGameDefinitionRec);
 aSize:=aSize+SizeOf(tGameState);
@@ -375,12 +406,17 @@ if fGamerz.Count>0 then
          pile:=pile+SizeOf(tGamerRec);
         end;
   end;
+finally
+  fCrit.Leave;
+end;
 end;
 
 
 procedure tGameData.SortGamerz;
 begin
 // sort gamerz by bestscore
+fCrit.Enter;
+try
 fGamerz.Sort(
  TComparer<TGamer>.Construct(
     function(const Left, Right: TGamer): Integer
@@ -391,11 +427,19 @@ fGamerz.Sort(
 );
 
 fGamerz.Reverse;
+finally
+  fCrit.Leave;
+end;
 end;
 
 function tGameData.CountGamerz: Integer;
 begin
+fCrit.Enter;
+try
     result:=fGamerz.Count;
+finally
+  fCrit.Leave;
+end;
 end;
 
 function tGameData.FindGamer(anic: string): Integer;
@@ -404,18 +448,25 @@ i:integer;
 begin
   result:=-1;
 
+ fCrit.Enter;
+ try
   for I :=0 to fGamerz.Count-1 do
     if UpperCase(fGamerz.Items[i].nic)=UpperCase(anic) then
       begin
         result:=i;
         break;
       end;
+ finally
+   fCrit.Leave;
+ end;
 
 end;
 
 function tGameData.CheckHash(aIndex: Integer; const aHash: string): Boolean;
 begin
   result:=false;
+  fCrit.Enter;
+try
  if (aIndex>-1) and (aIndex<fGamerz.Count) then
    begin
      if fGamerz[aIndex].fhash='' then
@@ -425,6 +476,9 @@ begin
      end else
      if aHash=fGamerz[aIndex].fhash then result:=true;
    end;
+finally
+  fCrit.Leave;
+end;
 
 end;
 
@@ -433,7 +487,8 @@ function tGameData.ClearHash(anic: string): Boolean;
 i:integer;
 begin
   result:=false;
-
+  fCrit.Enter;
+ try
   for I :=0 to fGamerz.Count-1 do
     if UpperCase(fGamerz.Items[i].nic)=UpperCase(anic) then
       begin
@@ -441,33 +496,53 @@ begin
         result:=true;
         break;
       end;
+ finally
+   fCRit.Leave;
+ end;
 
 end;
 
 procedure tGameData.AddGamer(aGamer: tGamer);
 begin
+ fCrit.Enter;
+ try
   fGamerz.Add(aGamer);
+ finally
+   fCrit.Leave;
+ end;
 end;
 
 procedure tGameData.DelGamer(aIndex: Integer);
 begin
+fCrit.Enter;
+try
  if (aIndex>-1) and (aIndex<fGamerz.Count) then
    begin
     fGamerz.Items[aIndex].Free;
     fGamerz.Delete(aIndex);
    end;
+finally
+  fCRit.Leave;
+end;
 
 end;
 
 procedure tGameData.UpdateGamer(aScore: Word; aIndex: Integer);
 begin
+fCrit.Enter;
+try
  if (aIndex>-1) and (aIndex<fGamerz.Count) then
   if fGamerz.Items[aIndex].BestScore<aScore then
      fGamerz.Items[aIndex].BestScore:=aScore;
+finally
+  fCrit.Leave;
+end;
 end;
 
 function tGameData.GetGamer(aIndex: Integer): tGamer;
 begin
+fCrit.Enter;
+try
 result:=TGamer.Create;
 result.fnic:='';
 result.fhash:='';
@@ -480,6 +555,9 @@ result.fbestscore:=0;
    result.fentries:=fGamerz.Items[aIndex].fentries;
    result.fbestscore:=fGamerz.Items[aIndex].fbestscore;
    end;
+finally
+  fCrit.Leave;
+end;
 end;
 
 
