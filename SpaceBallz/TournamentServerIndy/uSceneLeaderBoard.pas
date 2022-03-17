@@ -27,6 +27,7 @@ uses
 type
 TDlgLeaderBoard = class(TDummy)
   private
+    fDlgUp:boolean;
     fTopLeftBtn:tDlgInputButton;
     fTopMiddleBtn:tDlgInputButton;
     fTopRightBtn:tDlgInputButton;
@@ -37,6 +38,7 @@ TDlgLeaderBoard = class(TDummy)
     fBottomRightBtn:tDlgInputButton;
     fMenuMat:TDlgMaterial;
     fCurrentMenu:integer;
+    fSelectedGamer:integer;
     fMenuSelect:tDlgSelect_Event;
     fCleanedUp:Boolean;
     fBottomField:tImage3d;
@@ -58,9 +60,21 @@ TDlgLeaderBoard = class(TDummy)
     procedure   ChangeText(aValue:integer);
     procedure   DoClose(sender:tObject);
     procedure   DoConfig(sender:tObject);
+    procedure   DoGamerMenu(sender:tObject);
+    procedure   GamerMenuClose(sender:tObject;menu:integer);
+    procedure   PromptClearHash;
+    procedure   DoClearHash(sender:tObject;sel:integer);
+    procedure   PromptClearGamer;
+    procedure   DoClearGamer(sender:tObject;sel:integer);
+    procedure   DoTournMenu(sender:tObject);
+    procedure   TournMenuClose(sender:tObject;menu:integer);
     procedure   ConfigCancel(sender:tObject);
     procedure   ConfigDone(sender:tobject);
     procedure   UpdateBoard(sender:tObject);
+    procedure   PromptClearHashes;
+    procedure   DoClearHashes(sender:tObject;sel:integer);
+    procedure   PromptClearGamerz;
+    procedure   DoClearGamerz(sender:tObject;sel:integer);
   public
     procedure   StartAni;
     procedure   StopAni;
@@ -105,9 +119,11 @@ begin
   //set our cam first always!!!
   fCleanedUp:=false;
   Projection:=TProjection.Screen;
+  fDlgUp:=False;
 
 
   fMenuMat:=aMenuMat;
+  fSelectedGamer:=-1;
 
   //set w,h and pos
   Width:=aWidth;
@@ -258,6 +274,7 @@ if SectionHeight>(aButtonWidth+aColGap) then
     fGamerz[i].LabelText:='00:00';
     fGamerz[i].Opacity:=0.85;
     fGamerz[i].Visible:=false;
+    fGamerz[i].OnClick:=DoGamerMenu;
 
     if i in [2,5,8] then
      begin
@@ -291,10 +308,10 @@ if SectionHeight>(aButtonWidth+aColGap) then
     fBottomMiddleBtn.TextColor:=fMenuMat.Buttons.TextColor.Color;
     fBottomMiddleBtn.FontSize:=fMenuMat.FontSize;
   //  fBottomMiddleBtn.BtnBitMap.Assign(fMenuMat.Buttons.Rect.Texture);
-    fBottomMiddleBtn.Text:='?';
+    fBottomMiddleBtn.Text:='!';
     fBottomMiddleBtn.Opacity:=0.85;
-    fBottomMiddleBtn.OnClick:=DoClose;
-    fBottomMiddleBtn.Visible:=false;
+    fBottomMiddleBtn.OnClick:=DoTournMenu;
+    fBottomMiddleBtn.Visible:=true;
 
     newx:=newx+aButtonWidth+aColGap;
     fBottomRightBtn:=tDlgInputButton.Create(self,aButtonWidth/2,SectionHeight/2,newx,newy);
@@ -731,6 +748,8 @@ var
 aBtnNum:integer;
 begin
 aBtnNum:=0;
+if fDlgUp then exit;
+
   //we got a click event..
   if sender is TRectangle3d then
      aBtnNum:=TRectangle3d(sender).Tag;
@@ -778,14 +797,208 @@ end;
 
 procedure TDlgLeaderBoard.DoClose(sender: TObject);
 begin
+if fDlgUp then exit;
+
   if Assigned(fOnClose) then
     fOnClose(sender);
 
 end;
 
+
+procedure TDlgLeaderBoard.DoGamerMenu(sender: TObject);
+begin
+  //
+if fDlgUp then exit;
+
+  if sender is TRectangle3d then
+     fSelectedGamer:=TRectangle3d(sender).Tag;
+
+
+
+  if not Assigned(TournMenuDlg) then
+    begin
+      ShowGamerMenu;
+      TournMenuDlg.OnMenuSelect:=GamerMenuClose;
+      TournMenuDlg.Position.Z:=-2;
+    end;
+    fDlgUp:=True;
+
+end;
+
+procedure TDlgLeaderBoard.GamerMenuClose(sender: TObject; menu: Integer);
+begin
+
+  if Assigned(TournMenuDlg) then
+   Tron.KillTournMenu;
+
+   if menu=0 then
+     PromptClearHash
+       else if menu=1 then
+          PromptClearGamer
+            else
+              fDlgUp:=False;
+end;
+
+
+procedure TDlgLeaderBoard.PromptClearHash;
+begin
+
+  ShowConfirm('Clear gamerz hash?');
+  if assigned(ConfirmDlg) then
+     begin
+       ConfirmDlg.OnButtonClick:=DoClearHashes;
+     end;
+
+end;
+
+procedure TDlgLeaderBoard.DoClearHash(sender: TObject; sel: Integer);
+var
+anic:string;
+begin
+
+   Tron.KillConfirm;
+   if sel=0 then
+    begin
+      //they said yes..
+      if fSelectedGamer>-1 then
+       begin
+        if fSelectedGamer<PacketSrv.GameData.GamerCount then
+         begin
+          PacketSrv.GameData.Gamer[fSelectedGamer].Hash:='';
+          UpdateBoard(nil);
+          fSelectedGamer:=-1;
+         end;
+       end;
+    end;
+   fDlgUp:=False;
+
+end;
+
+procedure TDlgLeaderBoard.PromptClearGamer;
+begin
+
+  ShowConfirm('Delete gamer?');
+  if assigned(ConfirmDlg) then
+     begin
+       ConfirmDlg.OnButtonClick:=DoClearGamer;
+     end;
+
+end;
+
+procedure TDlgLeaderBoard.DoClearGamer(sender: TObject; sel: Integer);
+begin
+
+   Tron.KillConfirm;
+   if sel=0 then
+    begin
+      //they said yes..
+      if fSelectedGamer>-1 then
+       begin
+        if fSelectedGamer<PacketSrv.GameData.GamerCount then
+         begin
+         PacketSrv.GameData.DelGamer(fSelectedGamer);
+         UpdateBoard(nil);
+         fSelectedGamer:=-1;
+         end;
+       end;
+    end;
+   fDlgUp:=False;
+end;
+
+
+
+
+
+
+
+
+procedure TDlgLeaderBoard.DoTournMenu(sender: TObject);
+begin
+  //
+if fDlgUp then exit;
+
+  if not Assigned(TournMenuDlg) then
+    begin
+      ShowTournMenu;
+      TournMenuDlg.OnMenuSelect:=TournMenuClose;
+      TournMenuDlg.Position.Z:=-2;
+    end;
+    fDlgUp:=True;
+
+end;
+
+procedure TDlgLeaderBoard.TournMenuClose(sender: TObject; menu: Integer);
+begin
+
+  if Assigned(TournMenuDlg) then
+   Tron.KillTournMenu;
+
+   if menu=0 then
+     PromptClearHashes
+       else if menu=1 then
+          PromptClearGamerz
+            else
+              fDlgUp:=False;
+
+
+end;
+
+procedure TDlgLeaderBoard.PromptClearHashes;
+begin
+
+  ShowConfirm('Clear hashes from all gamerz?');
+  if assigned(ConfirmDlg) then
+     begin
+       ConfirmDlg.OnButtonClick:=DoClearHashes;
+     end;
+
+end;
+
+procedure TDlgLeaderBoard.DoClearHashes(sender: TObject; sel: Integer);
+begin
+
+   Tron.KillConfirm;
+   if sel=0 then
+    begin
+      //they said yes..
+      PacketSrv.GameData.ClearAllHashes;
+      UpdateBoard(nil);
+    end;
+   fDlgUp:=False;
+
+end;
+
+procedure TDlgLeaderBoard.PromptClearGamerz;
+begin
+
+  ShowConfirm('Clear all gamerz?');
+  if assigned(ConfirmDlg) then
+     begin
+       ConfirmDlg.OnButtonClick:=DoClearGamerz;
+     end;
+
+end;
+
+procedure TDlgLeaderBoard.DoClearGamerz(sender: TObject; sel: Integer);
+begin
+
+   Tron.KillConfirm;
+   if sel=0 then
+    begin
+      //they said yes..
+      PacketSrv.GameData.ClearAllGamerz;
+      UpdateBoard(nil);
+    end;
+   fDlgUp:=False;
+end;
+
+
+
 procedure TDlgLeaderBoard.DoConfig(sender: TObject);
 begin
   //
+if fDlgUp then exit;
+
   if not Assigned(ConfigDlg) then
     begin
       ShowConfig;
@@ -794,6 +1007,8 @@ begin
       ConfigDlg.Position.Z:=-2;
 
     end;
+
+    fDlgUp:=True;
 
 end;
 
@@ -804,7 +1019,10 @@ begin
     begin
      Tron.KillConfig;
     end;
+    fDlgUp:=False;
 end;
+
+
 procedure TDlgLeaderBoard.ConfigDone(sender: TObject);
 var
 aNewPort:integer;
@@ -817,6 +1035,7 @@ begin
      PacketSrv.GameData.EatGame(ConfigDlg.GameDef);
      Tron.KillConfig;
     end;
+    fDlgUp:=False;
 
   //restart server using new port config
   if aNewPort<>PacketSrv.Port then
@@ -836,6 +1055,8 @@ begin
 //
      PacketSrv.GameData.SortGamerz;
 
+self.BeginUpdate;
+try
  for I := Low(fGamerz) to High(fGamerz) do
    begin
    //
@@ -847,17 +1068,21 @@ begin
        fGamerz[i].Visible:=true;
        fGamerz[i].Text:=aGamer.Nic;
        fGamerz[i].LabelText:=FormatBestScore(aGamer.BestScore);
-       end;
+       end else fGamerz[i].Visible:=false;
       aGamer.Free;
       aGamer:=nil;
 
      end else
         begin
           fGamerz[i].Visible:=false;
+
         end;
 
 
    end;
+finally
+  self.EndUpdate;
+end;
 
 end;
 

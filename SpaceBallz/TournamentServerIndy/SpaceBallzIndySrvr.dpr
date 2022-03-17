@@ -18,7 +18,8 @@ uses
   uSpaceBallzData in '..\common\uSpaceBallzData.pas',
   uEventLogging in '..\common\uEventLogging.pas',
   uIndySBPacketServer in '..\common\uIndySBPacketServer.pas',
-  uDroidScreenLock in '..\common\uDroidScreenLock.pas';
+  uDroidScreenLock in '..\common\uDroidScreenLock.pas',
+  uTournMenuDlg in 'uTournMenuDlg.pas';
 
 {$R *.res}
 
