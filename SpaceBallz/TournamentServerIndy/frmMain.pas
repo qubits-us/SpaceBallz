@@ -174,15 +174,12 @@ PacketSrv.Start;
 
    if not GoFullScreen then
     begin
-    //ClientWidth:=Trunc(Screen.Width-(Screen.Width / 2));//the first of many divisions..
-    //ClientHeight:=Trunc(Screen.Height-(Screen.Height / 2));
+    ClientWidth:=Trunc(Screen.Width-(Screen.Width / 2));//the first of many divisions..
+    ClientHeight:=Trunc(Screen.Height-(Screen.Height / 2));
     Left:=50;
     Top:=10;
     BorderStyle:=TFmxFormBorderStyle.ToolWindow;
     Caption:='SpaceBallz Tournament Server - www.qubits.us';
-    //my 4k phone's res, but it's hdpi
-    //ClientWidth:=Trunc(Screen.Width / 2);
-    //ClientHeight:=Trunc(Screen.Height / 2);
      {Berlin gotta ya!!
        don't trunc and replace / with div
        those are ints, d11 singles}
