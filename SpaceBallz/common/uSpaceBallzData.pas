@@ -125,6 +125,8 @@ type
       function    ClearHash(anic:string):boolean;
       procedure   AddGamer(aGamer:tGamer);
       procedure   DelGamer(aIndex:integer);
+      procedure   ClearAllGamerz;
+      procedure   ClearAllHashes;
       procedure   UpdateGamer(aScore:word;aIndex:integer);
       property GamerCount:integer read CountGamerz;
       property Gamer[index:integer]:tGamer read GetGamer;
@@ -522,9 +524,44 @@ try
     fGamerz.Delete(aIndex);
    end;
 finally
-  fCRit.Leave;
+  fCrit.Leave;
 end;
 
+end;
+
+procedure tGameData.ClearAllGamerz;
+var
+i,cnt:integer;
+begin
+fCrit.Enter;
+try
+  cnt:=fGamerz.Count-1;
+for I := cnt downto 0 do
+  begin
+    fGamerz[i].Free;
+    fGamerz.Delete(i);
+  end;
+
+
+finally
+  fCrit.Leave;
+end;
+end;
+
+procedure tGameData.ClearAllHashes;
+var
+i:integer;
+begin
+fCrit.Enter;
+try
+
+for I := 0 to fGamerz.Count-1 do
+  begin
+    fGamerz[i].Hash:='';
+  end;
+finally
+  fCrit.Leave;
+end;
 end;
 
 procedure tGameData.UpdateGamer(aScore: Word; aIndex: Integer);
