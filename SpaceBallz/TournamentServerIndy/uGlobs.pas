@@ -15,7 +15,7 @@ uses
   System.UIConsts,dmMaterials,System.SyncObjs, System.Math.Vectors,
   FMX.Controls3D,FMX.Platform{$IFDEF ANDROID},FMX.Platform.Android{$ENDIF},
   uDlg3dCtrls,uDlg3dTextures,uNumSelectDlg,uSceneLeaderBoard,uConfigDlg,
-  uCommon3dDlgs,uGamerMenuDlg,uTournMenuDlg,uEventLogging;
+  uCommon3dDlgs,uTournMenuDlg,uEventLogging;
 
 
 
