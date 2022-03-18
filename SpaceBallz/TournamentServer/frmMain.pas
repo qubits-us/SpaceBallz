@@ -12,7 +12,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,System.UIConsts,System.IniFiles,System.IOUtils,
   IpHlpApi,IpTypes,Winapi.Windows, Winapi.Messages, //used by DiscoverMACIP
-  FMX.Types, FMX.Controls, FMX.Forms3D, FMX.Types3D, FMX.Forms, FMX.Graphics,
+  FMX.Types, FMX.Controls, FMX.Forms3D, FMX.Types3D, FMX.Forms, FMX.Graphics, FMX.TextLayout.GPU,
   FMX.Dialogs,FMX.Platform,uGlobs,uDlg3dCtrls,uSceneLeaderBoard;
 
 type
@@ -36,6 +36,13 @@ implementation
 {$R *.fmx}
 
 uses dmMaterials,dmFMXPacketSrv,uSpaceBallzData,uEventLogging;
+
+procedure WiggleHandle;
+begin
+{$IF RTLVersion111}
+TGPUObjectsPool.Instance.Free;
+{$ENDIF}
+end;
 
 //get our scale
 function GetScreenScale: Single;var ScreenService: IFMXScreenService;
@@ -139,11 +146,12 @@ Logger.Free;
 
   Tron.Free;
 
+  WiggleHandle;//no drips please..
+
 end;
 
 procedure TMainFrm.Form3DCreate(Sender: TObject);
 var
-aGamer:tGamer;
 aIni:TIniFile;
 aIp:String;
 ls:tLogSettings;
@@ -162,12 +170,12 @@ if not TDirectory.Exists(DataPath,true) then
 
 Logger:=tEventLogger.Create;
 ls.LogPath:=DataPath;
-ls.LoggingLevel:=0;
+ls.LoggingLevel:=10;
 ls.FlushInterval:=100;
 Logger.Initialize(ls);
 
 
-Logger.Log('SpaceBallz Server Starting up..');
+Logger.Log('SpaceBallz Server Starting up..',50);
 aini:=TIniFile.Create(TPath.Combine(DataPath,'SpaceBallz.ini'));
 aIni.WriteString('SpaceBallz','Version','1.0');
 //allow for overriding detected ip..
@@ -184,7 +192,7 @@ aIni.Free;
    SrvCommsDm:=TSrvCommsDm.Create(self);
    SrvCommsDm.LoadGameData;
    SrvCommsDm.srvSock.Listen;
-Logger.Log('Server is listening..');
+Logger.Log('Server is listening..',50);
 
    DlgMaterial:=tDlgMaterial.Create(self);//holds pics
 

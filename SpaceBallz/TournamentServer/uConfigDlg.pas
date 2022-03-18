@@ -784,13 +784,15 @@ end;
 procedure tDlgConfig.Refresh;
 var
 i:integer;
+gd:tGameDefinitionRec;
 begin
 
    fStartNum:=0;
   fBtnServerIP.Text:=fServerIP;
   fBtnServerPort.Text:=fServerPort;
+  gd:=SrvCommsDm.GameData.GameDef;
 
-  Move(SrvCommsDm.GameData.GameDef,fGameDef,SizeOf(TGameDefinitionRec));
+  Move(gd,fGameDef,SizeOf(TGameDefinitionRec));
 
 
       case fGameDef.BallSize of

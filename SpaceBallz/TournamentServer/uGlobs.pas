@@ -14,7 +14,8 @@ uses
   FMX.MaterialSources,FMX.Objects, FMX.Dialogs,FMX.Layers3D,FMX.Objects3D,
   System.UIConsts,dmMaterials,System.SyncObjs, System.Math.Vectors,
   FMX.Controls3D,FMX.Platform{$IFDEF ANDROID},FMX.Platform.Android{$ENDIF},
-  uDlg3dCtrls,uDlg3dTextures,uNumSelectDlg,uSceneLeaderBoard,uConfigDlg,uEventLogging;
+  uDlg3dCtrls,uDlg3dTextures,uNumSelectDlg,uSceneLeaderBoard,uConfigDlg,
+  uTournMenuDlg,uCommon3dDlgs,uEventLogging;
 
 
 
@@ -24,11 +25,17 @@ uses
     procedure KillLeaderBoard;
     procedure KillConfig;
     procedure KillNumSel;
+    procedure KillGamerMenu;
+    procedure KillTournMenu;
+    procedure KillConfirm;
     End;
 
 
 
   procedure ShowConfig;
+  procedure ShowTournMenu;
+  procedure ShowGamerMenu;
+  procedure ShowConfirm(aMsg:String);
 
 
 
@@ -40,6 +47,8 @@ var
   LeaderBoard:TDlgLeaderBoard;
   ConfigDlg:TDlgConfig;
   NumSelDlg:TDlgNumSel;
+  TournMenuDlg:tDlgTournMenu;
+  ConfirmDlg:tDlgConfirmation;
   DlgUp:Boolean;
   Tron:TTron;
   ServerIP:String;
@@ -51,6 +60,68 @@ var
 implementation
 
 uses frmMain;
+
+procedure TTron.KillConfirm;
+begin
+     if Assigned(ConfirmDlg) then
+      begin
+        ConfirmDlg.Visible:=false;
+       TThread.CreateAnonymousThread(
+        procedure
+         begin
+          TThread.Queue(nil,
+           procedure
+            begin
+              ConfirmDlg.CleanUp;
+              ConfirmDlg.Free;
+              ConfirmDlg:=nil;
+             end);
+         end).Start;
+      end;
+
+end;
+
+procedure TTron.KillTournMenu;
+begin
+     if Assigned(TournMenuDlg) then
+      begin
+        TournMenuDlg.Visible:=false;
+       TThread.CreateAnonymousThread(
+        procedure
+         begin
+          TThread.Queue(nil,
+           procedure
+            begin
+              TournMenuDlg.CleanUp;
+              TournMenuDlg.Free;
+              TournMenuDlg:=nil;
+             end);
+         end).Start;
+      end;
+
+end;
+
+
+
+procedure TTron.KillGamerMenu;
+begin
+     if Assigned(TournMenuDlg) then
+      begin
+        TournMenuDlg.Visible:=false;
+       TThread.CreateAnonymousThread(
+        procedure
+         begin
+          TThread.Queue(nil,
+           procedure
+            begin
+              TournMenuDlg.CleanUp;
+              TournMenuDlg.Free;
+              TournMenuDlg:=nil;
+             end);
+         end).Start;
+      end;
+
+end;
 
 
 procedure TTron.KillNumSel;
@@ -131,6 +202,66 @@ begin
 
 
 end;
+
+procedure ShowTournMenu;
+var
+newx,newy:single;
+begin
+  //
+  if not assigned(TournMenuDlg) then
+   begin
+   newx:=(MainFrm.ClientWidth/2);
+   newy:=(MainFrm.ClientHeight/2);
+
+   TournMenuDlg:=TDlgTournMenu.Create(MainFrm,DlgMaterial,MainFrm.ClientHeight/1.25,MainFrm.ClientHeight/1.25,newx,newy);
+   TournMenuDlg.Parent:=MainFrm;
+   end;
+
+
+end;
+
+procedure ShowGamerMenu;
+var
+newx,newy:single;
+begin
+  //
+  if not assigned(TournMenuDlg) then
+   begin
+   newx:=(MainFrm.ClientWidth/2);
+   newy:=(MainFrm.ClientHeight/2);
+
+   TournMenuDlg:=TDlgTournMenu.Create(MainFrm,DlgMaterial,MainFrm.ClientHeight/1.25,MainFrm.ClientHeight/1.25,newx,newy);
+   TournMenuDlg.Parent:=MainFrm;
+   TournMenuDlg.Keys[0].Text:='Clear Hash';
+   TournMenuDlg.Keys[1].Text:='Delete Gamer';
+   end;
+
+
+end;
+
+
+
+
+procedure ShowConfirm(aMsg:String);
+var
+newx,newy:single;
+begin
+  //
+  if not assigned(ConfirmDlg) then
+   begin
+   newx:=(MainFrm.ClientWidth/2);
+   newy:=(MainFrm.ClientHeight/2);
+
+   ConfirmDlg:=TDlgConfirmation.Create(MainFrm,DlgMaterial,MainFrm.ClientWidth/1.25,MainFrm.ClientHeight/1.50,newx,newy);
+   ConfirmDlg.Parent:=MainFrm;
+   ConfirmDlg.DlgText.Msg:=aMsg;
+   ConfirmDlg.Position.Z:=-2;
+   end;
+
+
+end;
+
+
 
 
 

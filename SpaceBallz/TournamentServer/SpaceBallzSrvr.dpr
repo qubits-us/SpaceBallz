@@ -17,7 +17,8 @@ uses
   uConfigDlg in 'uConfigDlg.pas',
   uNumPadDlg in '..\..\3dBase\common\uNumPadDlg.pas',
   uSpaceBallzData in '..\common\uSpaceBallzData.pas',
-  uEventLogging in '..\common\uEventLogging.pas';
+  uEventLogging in '..\common\uEventLogging.pas',
+  uTournMenuDlg in 'uTournMenuDlg.pas';
 
 {$R *.res}
 
