@@ -12,7 +12,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,System.UIConsts,System.IniFiles,System.IOUtils,
   IdStack,
-  FMX.Types, FMX.Controls, FMX.Forms3D, FMX.Types3D, FMX.Forms, FMX.Graphics,
+  FMX.Types, FMX.Controls, FMX.Forms3D, FMX.Types3D, FMX.Forms, FMX.Graphics, FMX.TextLayout.GPU,
   FMX.Dialogs,FMX.Platform,uGlobs,uDlg3dCtrls,uSceneLeaderBoard, System.Math.Vectors, FMX.Controls3D, FMX.Layers3D
    {$IFDEF ANDROID},FMX.Platform.Android{$ENDIF};
 
@@ -47,6 +47,12 @@ begin
 end;
 
 
+procedure WiggleHandle;
+begin
+{$IF RTLVersion111}
+TGPUObjectsPool.Instance.Free;
+{$ENDIF}
+end;
 
 
 
@@ -91,6 +97,10 @@ aIni.Free;
     end;
     {$ENDIF}
 
+
+  {$IFDEF MSWINDOWS}
+    WiggleHandle;
+  {$ENDIF}
 
 
 end;
