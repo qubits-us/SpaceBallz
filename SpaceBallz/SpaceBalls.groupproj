@@ -9,6 +9,9 @@
         <Projects Include="TournamentServer\SpaceBallzSrvr.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="TournamentServerIndy\SpaceBallzIndySrvr.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -35,14 +38,23 @@
     <Target Name="SpaceBallzSrvr:Make">
         <MSBuild Projects="TournamentServer\SpaceBallzSrvr.dproj" Targets="Make"/>
     </Target>
+    <Target Name="SpaceBallzIndySrvr">
+        <MSBuild Projects="TournamentServerIndy\SpaceBallzIndySrvr.dproj"/>
+    </Target>
+    <Target Name="SpaceBallzIndySrvr:Clean">
+        <MSBuild Projects="TournamentServerIndy\SpaceBallzIndySrvr.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SpaceBallzIndySrvr:Make">
+        <MSBuild Projects="TournamentServerIndy\SpaceBallzIndySrvr.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="SpaceBallz;SpaceBallzSrvr"/>
+        <CallTarget Targets="SpaceBallz;SpaceBallzSrvr;SpaceBallzIndySrvr"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="SpaceBallz:Clean;SpaceBallzSrvr:Clean"/>
+        <CallTarget Targets="SpaceBallz:Clean;SpaceBallzSrvr:Clean;SpaceBallzIndySrvr:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="SpaceBallz:Make;SpaceBallzSrvr:Make"/>
+        <CallTarget Targets="SpaceBallz:Make;SpaceBallzSrvr:Make;SpaceBallzIndySrvr:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

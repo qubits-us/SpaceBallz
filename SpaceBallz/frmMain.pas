@@ -14,7 +14,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms3D, FMX.Types3D, FMX.Forms, FMX.Graphics,
-  FMX.Dialogs,FMX.MaterialSources,FMX.Objects,FMX.Layers3D,FMX.Objects3D,
+  FMX.Dialogs,FMX.MaterialSources,FMX.Objects,FMX.Layers3D,FMX.Objects3D,FMX.TextLayout.GPU,
   System.UIConsts,dmMaterials,System.SyncObjs, System.Math.Vectors,System.IniFiles,System.IOUtils,
   FMX.Controls3D,FMX.Platform{$IFDEF ANDROID},FMX.Platform.Android{$ENDIF},
   uDlg3dCtrls,uSpaceBallz,uDlg3dTextures,uGlobs;
@@ -43,6 +43,14 @@ implementation
 
 uses
   uPacketClientDm;
+
+
+procedure WiggleHandle;
+begin
+{$IF RTLVersion111}
+TGPUObjectsPool.Instance.Free;
+{$ENDIF}
+end;
 
 
 
@@ -118,6 +126,15 @@ aIni.Free;
   {$IFDEF ANDROID}
   MainActivity.finish;
   {$ENDIF}
+
+
+  {$IFDEF MSWINDOWS}
+    WiggleHandle;
+  {$ENDIF}
+
+
+
+
 end;
 
 procedure TMainFrm.Form3DCreate(Sender: TObject);
