@@ -1484,7 +1484,9 @@ inherited create;
   fClientSock.Host:='192.168.0.51';
   fClientSock.UseNagle:=false;
   fClientSock.OnStatus:=SetStatus;
-  fClientSock.ReadTimeout:=1000;//should be 1sec or 1000ms
+  //doubled from 1000, sometime i get a timeout on first connection..
+  //only on android of course, this should help..
+  fClientSock.ReadTimeout:=2000;//should be 2sec or 2000ms
   //fClientSock.IOHandler.RecvBufferSize:=MAX_PACKET_SIZE;
   //fClientSock.IOHandler.SendBufferSize:=MAX_PACKET_SIZE;
   fPort:=9000;
@@ -1577,7 +1579,7 @@ end;
 
 {$IFDEF ANDROID}
 //android so tricky dicky..
-//do dis so we can hopefuly receive udp broadcast packets..
+//do this so we can hopefuly receive udp broadcast packets..
 //which android block by default..
 //seems to be working for me, so she stays..
 //should i be freeing this dope??
@@ -1637,11 +1639,10 @@ end;
 
 
 
-//connects client comms..
+//connects client comms, this is a blocking call, be prepared to wait up till timeout..
 procedure TClientComms.Connect;
 begin
   if fConnected then exit;// already connected..
-  try
     fClientSock.ConnectTimeout:=2000;//2 secs or 2000ms
     //copy our ip and port from discovery
     if fDiscvThrd.ServerIP<>'' then
@@ -1654,10 +1655,6 @@ begin
     fClientSock.Port:=Port;
     fClientSock.Connect;
     fConnected:=true;
-  finally
-   ;
-  end;
-
 
 end;
 

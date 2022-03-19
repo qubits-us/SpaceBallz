@@ -3,7 +3,6 @@ object SrvCommsDM: TSrvCommsDM
   OnDestroy = DataModuleDestroy
   Height = 159
   Width = 353
-  PixelsPerInch = 96
   object srvSock: TWSocketServer
     LineEnd = #13#10
     Port = '9000'

@@ -885,15 +885,18 @@ begin
  except on e:EFOpenError do exit;   //shit, nothing to do but leave
  end;
 
- SetLength(shit,FileOfShit.Size);
- FileOfShit.Position:=0;
- FileOfShit.Read(shit[0],Length(shit));
- try
- GameData.Take(shit);
- finally
- FileOfShit.Free;
- SetLength(shit,0);
- end;
+ if FileOfShit.Size>0 then //make sure we have some shit
+  begin
+   SetLength(shit,FileOfShit.Size);
+   FileOfShit.Position:=0;
+   FileOfShit.Read(shit[0],Length(shit));
+   try
+   GameData.Take(shit);
+   finally
+   FileOfShit.Free;
+   SetLength(shit,0);
+   end;
+  end else FileOfShit.Free;
 
 
 end;
@@ -908,10 +911,13 @@ begin
   FileOfAll:=TFileStream.Create(TPath.Combine(aPath,'SpaceBallz.dat'),fmCreate);
   except on e:EFCreateError do exit;   //oops, we tried..
   end;
+  try
   all:=GameData.Give;
   FileOfAll.Write(all[0],Length(all));
+  finally
   FileOfAll.Free;
   SetLength(all,0);
+  end;
 end;
 
 

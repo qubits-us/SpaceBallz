@@ -147,15 +147,18 @@ begin
  except on e:EFOpenError do exit;   //shit, nothing to do but leave
  end;
 
- SetLength(shit,FileOfShit.Size);
- FileOfShit.Position:=0;
- FileOfShit.Read(shit[0],Length(shit));
- try
- GameData.Take(shit);
- finally
- FileOfShit.Free;
- SetLength(shit,0);
- end;
+ if FileOfShit.Size>0 then
+  begin
+   SetLength(shit,FileOfShit.Size);
+   FileOfShit.Position:=0;
+   FileOfShit.Read(shit[0],Length(shit));
+    try
+     GameData.Take(shit);
+    finally
+     FileOfShit.Free;
+     SetLength(shit,0);
+    end;
+  end;
 end;
 
 //does it match our packet identifier
