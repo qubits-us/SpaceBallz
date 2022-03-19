@@ -21,12 +21,13 @@ uses
        fnic:string;
        fpass:string;
        fConnected:boolean;
+       fConnecting:boolean;
        fBtnIP:tDlgInputButton;
        fBtnPort:tDlgInputButton;
        fBtnNic:tDlgInputButton;
        fBtnHash:tDlgInputButton;
-       fBtnCancel:tDlgButton;
        fBtnConnect:tDlgButton;
+       fBtnCancel:tDlgButton;
        fIm:TImage3d;
        fMat:TDlgMaterial;
        fDoneEvent:TDlgClick_Event;
@@ -46,7 +47,6 @@ uses
 
        procedure ConnectClick(sender:tObject);
        procedure OnConnect(sender:tObject);
-       procedure OnError(sender:tObject;aMsg:String);
        procedure OnBadHash(senrder:tObject);
        procedure ClearError(sender:tObject);
        procedure OnRecvGameDef(sender:tObject);
@@ -62,6 +62,8 @@ uses
                     aWidth,aHeight,aX,aY:single); reintroduce;
        destructor  Destroy;override;
        procedure   CleanUp;
+       procedure  SetConnecting;
+       procedure OnError(sender:tObject;aMsg:String);
 
        property BackIm:TImage3d read fim write fim;
        property Port:integer read fPort write SetPort;
@@ -98,6 +100,8 @@ fCleanedUp:=false;
 
   fMat:=aMat;
   fDlgUp:=False;
+  fConnecting:=False;
+  fConnected:=false;
 
   //set w,h and pos
   Width:=(aWidth);
@@ -270,8 +274,8 @@ if SectionHeight>(aButtonWidth+aColGap) then
       fBtnCancel.FontSize:=fMat.FontSize;
       fBtnCancel.BtnBitMap.Assign(fMat.Buttons.Rect.Texture);
       fBtnCancel.Text:='Cancel';
-
      fBtnCancel.OnClick:=DoCancelClick;//
+
 
       fIpNumPad:=nil;
       fNumPad:=nil;
@@ -300,6 +304,7 @@ i:integer;
 begin
 //clean house
 if fCleanedUp then Exit;
+
 
 
 fBtnConnect.CleanUp;
@@ -351,11 +356,20 @@ Parent:=nil;
 
 end;
 
+procedure tConnectDlg.SetConnecting;
+begin
+  fConnecting:=true;
+  fBtnConnect.Text:='Connecting...';
+  fBtnConnect.Repaint;
+end;
+
 
 
 procedure tConnectDlg.IPClick(sender: TObject);
 begin
   if fDlgUp then exit;
+  if fConnecting then exit;
+
 
      if not assigned(fIPNumPad) then
         begin
@@ -404,6 +418,7 @@ end;
 procedure tConnectDlg.NicClick(sender: TObject);
 begin
   if fDlgUp then exit;
+  if fConnecting then exit;
 
   if not Assigned(KeyboardDlg) then
      KeyboardDlg:=tDlgKeyboard.Create(self,fmat,TDummy(Self.Parent).Width,TDummy(Self.Parent).Height,0,0);
@@ -434,6 +449,7 @@ end;
 procedure tConnectDlg.HashClick(sender: TObject);
 begin
   if fDlgUp then exit;
+  if fConnecting then exit;
 
   if not Assigned(KeyboardDlg) then
      KeyboardDlg:=tDlgKeyboard.Create(self,fmat,TDummy(Self.Parent).Width,TDummy(Self.Parent).Height,0,0);
@@ -465,6 +481,12 @@ end;
 procedure tConnectDlg.ConnectClick(sender: TObject);
 begin
 
+if fDlgUp then exit;
+if fConnecting then exit;
+
+  SetConnecting;
+
+
  if fPass<> GamerHash then
    begin
      PacketCli.Gamer.SmokeHash(fPass);
@@ -477,23 +499,45 @@ begin
  if not assigned(PacketCli.ClientComms) then
    PacketCli.CreateComms;
 
-  PacketCli.ClientComms.Host:=fIP;
-  PacketCli.ClientComms.Port:=fPort;
+ PacketCli.ClientComms.Host:=fIP;
+ PacketCli.ClientComms.Port:=fPort;
  PacketCli.OnConnect:=OnConnect;
  PacketCli.OnRecvDef:=OnRecvGameDef;
  PacketCli.OnHashError:=OnBadHash;
  PacketCli.OnCommError:=OnError;
+
+       TThread.CreateAnonymousThread(
+        procedure
+         begin
+          TThread.Queue(nil,
+           procedure
+            begin
+            try
+              PacketCli.ClientComms.Connect;
+              except on e:exception do
+               ConnectDlg.OnError(nil,e.Message);
+            end;
+             end);
+         end).Start;
+
+
+
+  {
+
   try
    PacketCli.ClientComms.Connect;
   except on e:exception do
   OnError(nil,e.Message);
   end;
+   }
+
 end;
 
 procedure tConnectDlg.OnConnect(sender: TObject);
 begin
   //connected
   PacketCli.ConnectGamer;
+  fConnecting:=false;
 
 end;
 
@@ -501,10 +545,12 @@ procedure tConnectDlg.OnError(sender: TObject; aMsg: string);
 begin
   //
   fConnected:=false;
+  fConnecting:=false;
   PacketCli.ClientComms.Disconnect;
   fDlgUp:=true;
   MsgOK(aMsg);
   InfoDlg.OnClick:=ClearError;
+  fBtnConnect.Text:='Connect';
 
 end;
 
@@ -572,6 +618,7 @@ end;
 procedure tConnectDlg.GetPort(sender:tObject);
 begin
 if fDlgUp then exit;
+if fConnecting then exit;
 
   //get new port number
        if not assigned(fNumPad) then

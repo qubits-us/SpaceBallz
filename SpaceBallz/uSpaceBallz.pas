@@ -23,7 +23,7 @@ uses
 
 
 
- //our balls
+ //our ball
 type
     TSpaceBall = class(tSphere)
      private
@@ -164,7 +164,7 @@ begin
   fMaxStep:=MAX_SPEED;
   fLastLY:=0;
   fLastRY:=0;
-  fBallSize:=1;
+  fBallSize:=MED_SIZE;
 
 
 end;
@@ -213,9 +213,9 @@ begin
   HitTest:=False;
   fNumBalls:=2;
   fBallSpeed:=4;
-  fBallSize:=1;
-  fPaddleSize:=1;
-  fGameMode:=0;//practice
+  fBallSize:=MED_SIZE;
+  fPaddleSize:=MED_SIZE;
+  fGameMode:=GM_PRACT;//practice
 
   //space.. make it deep...
   //increase im's w h in porportion to z
@@ -286,11 +286,11 @@ begin
    begin
    fBalls[i]:=TSpaceBall.Create(self,aBtnHeight/2,aBtnHeight/2,0,newy);
    fBalls[i].Projection:=tProjection.Screen;
-   fBalls[i].Angle:=1;
-   fBalls[i].VertDirection:=0;
+   fBalls[i].Angle:=1;//slight angle
+   fBalls[i].VertDirection:=0;//down
    if Odd(i+1) then
-     fBalls[i].HorzDirection:=0 else
-       fBalls[i].HorzDirection:=1;
+     fBalls[i].HorzDirection:=0 else //left
+       fBalls[i].HorzDirection:=1;  //right
    MaterialsDm.tmGlobeImg.Texture.FlipVertical;
    fBalls[i].MaterialSource:=MaterialsDm.tmGlobeImg;
    fBalls[i].Parent:=self;
@@ -911,9 +911,7 @@ begin
   Tron.KillConnect;
   fConnected:=true;
   fGameDef.Consume(PacketCli.GameDef);
- // ShowMessage(IntToStr(fGameDef.Levels[1].Seconds));
   fGameDef.AdjSecs;
- // ShowMessage(IntToStr(fGameDef.Levels[1].Seconds));
   PacketCli.OnConnect:=OnConnect;
   PacketCli.OnCommError:=OnError;
   PacketCli.OnHashError:=OnBadHash;
@@ -938,6 +936,7 @@ begin
   InfoDlg.OnClick:=ClearError;
 
   fBtnStart.Text:='Start';
+  fBtnGameMode.Visible:=true;
 
   fConnected:=false;
   PacketCli.ClientComms.Disconnect;
@@ -974,6 +973,8 @@ begin
  fGameDef.Consume(PacketCli.GameDef);
  fGameDef.AdjSecs;
  fBtnStart.Text:='Start';
+ fBtnGameMode.Visible:=true;
+
 end;
 
 
@@ -1081,11 +1082,7 @@ end;
                   fBalls[aBallNum].Position.Z := aSize;
                   fBalls[aBallNum].BallSize := fBallSize;
                 end;
-                if aHd = 0 then
-                  aHd := 1
-                else
-                  aHd := 0;
-
+                if aHd = 0 then aHd := 1 else aHd := 0;
                 Inc(aBallNum);
               end;
             end;
