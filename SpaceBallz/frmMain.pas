@@ -42,7 +42,7 @@ implementation
 {$R *.fmx}
 
 uses
-  uPacketClientDm;
+  uPacketClientDm,uGameSound;
 
 
 procedure WiggleHandle;
@@ -106,6 +106,7 @@ begin
   MaterialsDm.Free;
 
 
+    GameSound.Free;
 
   PacketCli.Free;
 
@@ -151,6 +152,16 @@ begin
 
    PacketCli:=tPacketClientDM.Create(self);
 
+{$IFDEF ANDROID}
+//location of sound file for robots
+SoundPath:=tPath.GetDocumentsPath;
+{$ENDIF}
+
+{$IFDEF MSWINDOWS}
+SoundPath:=ExtractFilePath(ParamStr(0));
+{$ENDIF}
+
+
 DataPath:=TPath.GetHomePath;
 DataPath:=TPath.Combine(DataPath,'SpaceBallz');
 if not TDirectory.Exists(DataPath,true) then
@@ -189,6 +200,23 @@ aIni.Free;
 
       //everybody scales!!
       CurrentScale:=GetScreenScale;
+
+  GameSound:=tGameSound.Create;
+  //load sound effects
+  if TFile.Exists(TPath.Combine(SoundPath,'womp.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'womp.wav'),'womp');
+  if TFile.Exists(TPath.Combine(SoundPath,'womp2.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'womp2.wav'),'womp2');
+  if TFile.Exists(TPath.Combine(SoundPath,'warning_horn.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'warning_horn.wav'),'warning');
+  if TFile.Exists(TPath.Combine(SoundPath,'cannon_x.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'cannon_x.wav'),'cannon');
+  if TFile.Exists(TPath.Combine(SoundPath,'buzzer_x.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'buzzer_x.wav'),'buzzer');
+   //load background music
+  if TFile.Exists(TPath.Combine(SoundPath,'music.mp3')) then
+    GameSound.MusicFile:=TPath.Combine(SoundPath,'music.mp3');
+
 
      {Berlin gotta ya!!
        don't trunc and replace / with div

@@ -48,6 +48,7 @@ var
   GamerNic:string;
   GamerHash:String;
   DataPath:string;
+  SoundPath:string;
 
   DlgUp:Boolean;
   Tron:TTron;

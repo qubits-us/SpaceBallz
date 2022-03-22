@@ -143,7 +143,7 @@ type
 
 implementation
 
-uses dmMaterials,uGlobs,uDlg3dTextures,uConnectDlg,uPacketClientDm;
+uses dmMaterials,uGlobs,uDlg3dTextures,uConnectDlg,uPacketClientDm,uGameSound;
 
 Constructor TSpaceBall.Create(aOwner: TComponent; aWidth: Single; aHeight: Single; ax: Single; ay: Single);
 begin
@@ -538,6 +538,9 @@ begin
   fWebTxt.Visible:=true;
    //not running yet
   fGameRunning:=false;
+
+  GameSound.EffectsVol:=MID_VOL;
+  GameSound.MusicVol:=MID_VOL;
 
 
 
@@ -1004,7 +1007,8 @@ end;
         exit;
       end;
 
-
+    GameSound.Play('warning');
+    GameSound.MusicPlaying:=true;
 
     aSize:=fBallMaxSize;
 
@@ -1115,6 +1119,10 @@ aHd:byte;
 aGT:word;
 begin
   fGameTmr.Enabled:=false;
+
+  GameSound.Play('buzzer');
+  GameSound.MusicPlaying:=false;
+
    aHd:=0;//horz dir
   for I := Low(fBalls) to High(fBalls) do
    begin
@@ -1228,7 +1236,7 @@ begin
              begin
                //change vert direction
                if fBalls[i].VertDirection=0 then fBalls[i].VertDirection:=1 else fBalls[i].VertDirection:=0;
-
+              GameSound.Play('womp2');
              end else fBalls[i].Position.Y:=ay;
 
             end;
@@ -1256,6 +1264,7 @@ begin
              begin
                //change vert direction
                if fBalls[i].VertDirection=0 then fBalls[i].VertDirection:=1 else fBalls[i].VertDirection:=0;
+               GameSound.Play('womp2');
 
              end else fBalls[i].Position.Y:=ay;
             end;
@@ -1268,6 +1277,7 @@ begin
           begin
            fBalls[i].Launched:=true;
            fBalls[i].Visible:=true;
+           GameSound.Play('cannon');
           end;
      end;
   end;
@@ -1303,7 +1313,7 @@ begin
 
         fBalls[aBall].fStep:=fBalls[aBall].fStep*2;
         if fBalls[aBall].fStep>fBalls[aBall].fMaxStep then fBalls[aBall].fStep:=fBalls[aBall].fMaxStep;
-
+         GameSound.Play('womp');
         end else
          begin
          if fBalls[aBall].fLastLY=aY then
@@ -1319,6 +1329,7 @@ begin
                   fBalls[aBall].fStep:=fBallSpeed;
                    if aY>fLeftPaddle.Position.Y then fBalls[aBall].VertDirection:=0 else fBalls[aBall].VertDirection:=1;
                  end;
+              GameSound.Play('womp2');
          end;
 
        end;
@@ -1339,6 +1350,7 @@ begin
                         fBalls[aBall].Angle:=0.5;
            fBalls[aBall].fStep:=fBalls[aBall].fStep*2;
            if fBalls[aBall].fStep>fBalls[aBall].fMaxStep then fBalls[aBall].fStep:=fBalls[aBall].fMaxStep;
+           GameSound.Play('womp');
            end else
             begin
              if fBalls[aBall].fLastRY=aY then
@@ -1353,6 +1365,7 @@ begin
                    fBalls[aBall].fStep:=fBallSpeed;
                    if aY>fRightPaddle.Position.Y then fBalls[aBall].VertDirection:=0 else fBalls[aBall].VertDirection:=1;
                   end;
+             GameSound.Play('womp2');
             end;
          end;
         end;
