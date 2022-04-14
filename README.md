@@ -9,7 +9,7 @@ Practice - Can set number of balls, ball size, ball speed and paddle size.<br>
 Levels - A ball added every 10 seconds.<br>
 Tournaments -Game controlled by tournament server.<br>
 Two Tournament servers one is a Windows only 3d application, using ICS.<br>
-The other built with INDY is Windows and Android compatible.<br>
+The other built with INDY is Windows and Android&trade; compatible.<br>
 Both have embedded leader boards, displays top 12 gamerz<br>
 <br>
 GAME ON!!<br>
