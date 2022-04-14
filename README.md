@@ -24,3 +24,5 @@ Happy Birthday DELPHI!!!<br>
 ![sbz](https://user-images.githubusercontent.com/97798670/156291199-afe3c627-4ca1-4b77-bc72-72e6ce23ad6d.jpg)
 <br><br>
 Delphi is a registered trademark of <a href="https://www.embarcadero.com/products/delphi" rel="nofollow">Embarcadero, Inc.</a>
+<br>
+Android is a trademark of <a href="https:www.google.com" rel="nofollow">Google LLC.</a>
