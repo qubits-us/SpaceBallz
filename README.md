@@ -25,4 +25,4 @@ Happy Birthday DELPHI!!!<br>
 <br><br>
 Delphi is a registered trademark of <a href="https://www.embarcadero.com/products/delphi" rel="nofollow">Embarcadero, Inc.</a>
 <br>
-Android is a trademark of <a href="https:www.google.com" rel="nofollow">Google LLC.</a>
+Android is a trademark of <a href="https://www.google.com" rel="nofollow">Google LLC.</a>
