@@ -79,7 +79,7 @@ type
 
 function  CheckPacketIdent(Const AIdent:TIdentArray):boolean;
 procedure FillPacketIdent(var aIdent:tIdentArray);
-function SwapBytes(Value: LongWord): LongWord;
+function SwapBytes(Value: Cardinal): Cardinal;
 
 
 
@@ -108,7 +108,7 @@ begin
 end;
 
 
-function SwapBytes(Value: LongWord): LongWord;
+function SwapBytes(Value: Cardinal): Cardinal;
 type
   Bytes = packed array[0..3] of Byte;
 

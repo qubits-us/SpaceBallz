@@ -143,6 +143,7 @@ type
         fStatus:tComms_Status;
         fLogEvent:tComms_event;
         fGamerRecvd:tComms_Event;
+        fNewGamer:tComms_event;
         fDiscvThrd:TDiscoveryThread;//discovery
 
     {$IFDEF ANDROID}
@@ -167,6 +168,7 @@ type
         procedure Log(aMsg:String);
         procedure LogError(aMsg:String);
         procedure trigGamerRecv;
+        procedure trigNewGamer;
         procedure OnConnect(AContext: TIdContext);
         procedure OnContextCreated(AContext: TIdContext);
         procedure OnDisconnect(AContext: TIdContext);
@@ -189,6 +191,7 @@ type
         procedure   DoError;
         procedure   DoStatus(aStatus:string);
         procedure   DoLog;
+        procedure   DoNewGamer;
         procedure   DoGamerRecvd;
         function    PopLog:string;
         function    PopErrorLog:string;
@@ -201,6 +204,7 @@ type
         property OnState:tComms_Status read fStatus write fStatus;
         property OnLog:tComms_event read fLogEvent write fLogEvent;
         property OnGamer:tComms_Event read fGamerRecvd write fGamerRecvd;
+        property OnNewGamer:tComms_event read fNewGamer write fNewGamer;
         property Port:integer read fPort write fPort;
         property DiscvPort:integer read fDiscvPort write SetDiscoveryPort;
         property IP:string read fIP write fIP;
@@ -812,7 +816,7 @@ procedure tPacketServer.GetWifiLock;
 var
   info: JWiFiInfo;
   ip: string;
-  lw:longword;
+  lw:cardinal;
 begin
  if fWifiLockEngaged then exit;//nothing to do here
 try
@@ -880,6 +884,8 @@ shit:tShit;
 FileOfShit:TFileStream;
 begin
   //load some shit
+if tFile.Exists(tPath.Combine(aPath,'SpaceBallz.dat')) then
+ begin
  try
   FileOfShit:=TFileStream.Create(TPath.Combine(aPath,'SpaceBallz.dat'),fmOpenRead);
  except on e:EFOpenError do exit;   //shit, nothing to do but leave
@@ -897,6 +903,7 @@ begin
    SetLength(shit,0);
    end;
   end else FileOfShit.Free;
+ end;
 
 
 end;
@@ -1077,10 +1084,19 @@ begin
          if Assigned(PacketSrv) then
           PacketSrv.DoGamerRecvd;
         end);
-
-
 end;
 
+procedure tPacketServer.trigNewGamer;
+begin
+
+ //trigger event
+  TThread.Queue(nil,
+        procedure
+        begin
+         if Assigned(PacketSrv) then
+          PacketSrv.DoNewGamer;
+        end);
+end;
 
 
 procedure tPacketServer.OnConnect(AContext: TIdContext);
@@ -1131,7 +1147,12 @@ begin
   if assigned(fLogEvent) then fLogEvent(nil);
 end;
 
-procedure tPAcketServer.DoGamerRecvd;
+procedure tPacketServer.DoNewGamer;
+begin
+  if assigned(fNewGamer) then fNewGamer(nil);
+end;
+
+procedure tPacketServer.DoGamerRecvd;
 begin
   if assigned(fGamerRecvd) then fGamerRecvd(nil);
 end;

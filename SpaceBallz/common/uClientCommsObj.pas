@@ -696,7 +696,6 @@ end;
 //convert from byte array to string, missing me short strings.. :)
 function TDiscoveryThread.BytesToStr(const aBytes:Array of byte):string;
 var
-i:integer;
 sBytes:TBytes;
 aEncoding:TEncoding;
 begin
@@ -1215,7 +1214,6 @@ end;
 
 procedure TReceivingThread.Execute;
 var
-qCount:integer;
 aData:TIdBytes;
 aGoodRead:boolean;
 APacketHdr:TPacketHdr;
@@ -1315,7 +1313,6 @@ procedure TReceivingThread.RecvPacket(const aPacketHdr:TPacketHdr);
 var
 aPacket:pDataBuff;
 aData:TIdBytes;
-aSize:integer;
 begin
 
    try
@@ -1984,8 +1981,6 @@ end;
 
 
 function TClientComms.PopPacket:pDataBuff;
-var
-aObject:TObject;
 begin
    fLock.Enter;
    try
