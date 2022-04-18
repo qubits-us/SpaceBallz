@@ -36,7 +36,7 @@ implementation
 
 {$R *.fmx}
 
-uses dmMaterials,uSpaceBallzData,uEventLogging,uIndySBPacketServer,uDroidScreenLock;
+uses dmMaterials,uSpaceBallzData,uEventLogging,uIndySBPacketServer,uDroidScreenLock,uGameSound;
 
 //get our scale
 function GetScreenScale: Single;var ScreenService: IFMXScreenService;
@@ -76,8 +76,6 @@ aIni.WriteBool('General','FullScreen',GoFullScreen);
 aIni.Free;
 
 
-//Logger.Log('Shutting down..');
-//Logger.Free;
 
   dlgMaterial.Free;
   dlgMaterial:=nil;
@@ -88,7 +86,11 @@ aIni.Free;
   PacketSrv.SaveGameData(DataPath);
   PacketSrv.Free;
 
+
+  GameSound.Free;
+
   Tron.Free;
+
    {$IFDEF ANDROID}
    try
     ReleaseWakeLock;
@@ -107,10 +109,8 @@ end;
 
 procedure TMainFrm.Form3DCreate(Sender: TObject);
 var
-aGamer:tGamer;
 aIni:TIniFile;
 aIp:String;
-ls:tLogSettings;
 begin
 //in the beginning, there was only code..
    System.ReportMemoryLeaksOnShutdown:=true;//catch me if you can.. :P
@@ -118,16 +118,20 @@ begin
    ServerPort:='9000';
 
 
-DataPath:=TPath.GetHomePath;
-DataPath:=TPath.Combine(DataPath,'SpaceBallzSrv');
+DataPath:=TPath.GetDocumentsPath;
+
+{$IFDEF MSWINDOWS}
+DataPath:=TPath.Combine(DataPath,'SpaceBallzTournSrvr');
 if not TDirectory.Exists(DataPath,true) then
         tDirectory.CreateDirectory(DataPath);
+{$ENDIF}
 
-//Logger:=tEventLogger.Create;
-ls.LogPath:=DataPath;
-ls.LoggingLevel:=10;
-ls.FlushInterval:=100;
-//Logger.Initialize(ls);
+SoundPath:=DataPath;
+
+//if not TDirectory.Exists(SoundPath,true) then
+//        tDirectory.CreateDirectory(SoundPath);
+
+
 
 
 //Logger.Log('SpaceBallz Server Starting up..',50);
@@ -144,6 +148,32 @@ aIni.Free;
 
 
    MaterialsDm:=TMaterialsDm.Create(self);//pics
+
+GameSound:=tGameSound.Create;
+  //load sound effects
+ if TFile.Exists(TPath.Combine(SoundPath,'applause2_x.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'applause2_x.wav'),'appl');
+  if TFile.Exists(TPath.Combine(SoundPath,'buzzer3_x.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'buzzer3_x.wav'),'buzz');
+  if TFile.Exists(TPath.Combine(SoundPath,'gong.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'gong.wav'),'gong');
+  if TFile.Exists(TPath.Combine(SoundPath,'click_x.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'click_x.wav'),'click');
+  if TFile.Exists(TPath.Combine(SoundPath,'air_raid.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'air_raid.wav'),'raid');
+
+  if TFile.Exists(TPath.Combine(SoundPath,'blip.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'blip.wav'),'blip');
+  if TFile.Exists(TPath.Combine(SoundPath,'bloop_x.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'bloop_x.wav'),'bloop');
+  if TFile.Exists(TPath.Combine(SoundPath,'boing2.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'boing2.wav'),'boing');
+  if TFile.Exists(TPath.Combine(SoundPath,'explosion_x.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'explosion_x.wav'),'explo');
+  if TFile.Exists(TPath.Combine(SoundPath,'modem1.wav')) then
+    GameSound.Add(TPath.Combine(SoundPath,'modem1.wav'),'modem');
+
+
 
 PacketSrv:=tPacketServer.Create;
 PacketSrv.LoadGameData(DataPath);
@@ -162,6 +192,8 @@ GoFullScreen:=true;
 {$ENDIF}
 
 PacketSrv.Start;
+
+//GameSound.Play('modem');
 
 
 //Logger.Log('Server is listening..',50);
