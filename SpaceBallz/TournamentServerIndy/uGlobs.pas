@@ -55,6 +55,7 @@ var
   ServerPort:String;
   ServerMAC:String;
   DataPath:String;
+  SoundPath:String;
 
 
 implementation

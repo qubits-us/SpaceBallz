@@ -50,6 +50,7 @@ TDlgLeaderBoard = class(TDummy)
     fImFa2:TFloatAnimation;
     fAniType:byte;//0=none 1=slide 2=merge
     fOnClose:tDlgClick_Event;
+    fFirstTime:boolean;
   protected
     function    GetKey(aKeyNum:integer):TDlgInputButton;
     procedure   SetKey(aKeyNum:integer;value:TDlgInputButton);
@@ -71,6 +72,7 @@ TDlgLeaderBoard = class(TDummy)
     procedure   ConfigCancel(sender:tObject);
     procedure   ConfigDone(sender:tobject);
     procedure   UpdateBoard(sender:tObject);
+    procedure   NewGamer(sender:tObject);
     procedure   PromptClearHashes;
     procedure   DoClearHashes(sender:tObject;sel:integer);
     procedure   PromptClearGamerz;
@@ -95,7 +97,7 @@ end;
 
 implementation
 
-uses dmMaterials,uGlobs,uSpaceBallzData,uIndySBPacketServer,uDlg3dTextures;
+uses dmMaterials,uGlobs,uSpaceBallzData,uIndySBPacketServer,uDlg3dTextures,uGameSound;
 
 
 
@@ -120,6 +122,7 @@ begin
   fCleanedUp:=false;
   Projection:=TProjection.Screen;
   fDlgUp:=False;
+  fFirstTime:=true;
 
 
   fMenuMat:=aMenuMat;
@@ -231,7 +234,8 @@ if SectionHeight>(aButtonWidth+aColGap) then
     fTopMiddleBtn.LabelSize:=fMenuMat.FontSize/1.25;
   //  fTopMiddleBtn.BtnBitMap.Assign(fMenuMat.Buttons.Rect.Texture);
     fTopMiddleBtn.LabelText:='SpaceBallz';
-    fTopMiddleBtn.Text:='Top Gamerz';
+
+    fTopMiddleBtn.Text:='Top Gamerz ';//+IntToStr(GameSound.CountSounds);
     fTopMiddleBtn.Opacity:=0.85;
     fTopMiddleBtn.OnClick:=nil;
     newx:=newx+aButtonWidth+aColGap;
@@ -363,6 +367,7 @@ if SectionHeight>(aButtonWidth+aColGap) then
       UpdateBoard(nil);
 
       PacketSrv.OnGamer:=UpdateBoard;
+      PacketSrv.OnNewGamer:=NewGamer;
 
 
 end;
@@ -754,6 +759,7 @@ if fDlgUp then exit;
   if sender is TRectangle3d then
      aBtnNum:=TRectangle3d(sender).Tag;
 
+     GameSound.Play('blip');
 
   if assigned(fMenuSelect) then
       fMenuSelect(sender,aBtnNum);
@@ -822,6 +828,7 @@ if fDlgUp then exit;
       TournMenuDlg.Position.Z:=-2;
     end;
     fDlgUp:=True;
+    GameSound.Play('boing');
 
 end;
 
@@ -836,7 +843,10 @@ begin
        else if menu=1 then
           PromptClearGamer
             else
+              begin
               fDlgUp:=False;
+              GameSound.Play('blip');
+              end;
 end;
 
 
@@ -848,6 +858,7 @@ begin
      begin
        ConfirmDlg.OnButtonClick:=DoClearHashes;
      end;
+     GameSound.Play('bloop');
 
 end;
 
@@ -860,6 +871,7 @@ begin
    if sel=0 then
     begin
       //they said yes..
+      GameSound.Play('explo');
       if fSelectedGamer>-1 then
        begin
         if fSelectedGamer<PacketSrv.GameData.GamerCount then
@@ -869,7 +881,7 @@ begin
           fSelectedGamer:=-1;
          end;
        end;
-    end;
+    end else GameSound.Play('blip');
    fDlgUp:=False;
 
 end;
@@ -883,6 +895,8 @@ begin
        ConfirmDlg.OnButtonClick:=DoClearGamer;
      end;
 
+     GameSound.Play('bloop');
+
 end;
 
 procedure TDlgLeaderBoard.DoClearGamer(sender: TObject; sel: Integer);
@@ -892,6 +906,7 @@ begin
    if sel=0 then
     begin
       //they said yes..
+      GameSound.Play('explo');
       if fSelectedGamer>-1 then
        begin
         if fSelectedGamer<PacketSrv.GameData.GamerCount then
@@ -901,7 +916,7 @@ begin
          fSelectedGamer:=-1;
          end;
        end;
-    end;
+    end else GameSound.Play('blip');
    fDlgUp:=False;
 end;
 
@@ -916,7 +931,7 @@ procedure TDlgLeaderBoard.DoTournMenu(sender: TObject);
 begin
   //
 if fDlgUp then exit;
-
+   GameSound.Play('boing');
   if not Assigned(TournMenuDlg) then
     begin
       ShowTournMenu;
@@ -938,7 +953,10 @@ begin
        else if menu=1 then
           PromptClearGamerz
             else
+              begin
               fDlgUp:=False;
+              GameSound.Play('blip');
+              end;
 
 
 end;
@@ -951,6 +969,7 @@ begin
      begin
        ConfirmDlg.OnButtonClick:=DoClearHashes;
      end;
+     GameSound.Play('bloop');
 
 end;
 
@@ -961,9 +980,10 @@ begin
    if sel=0 then
     begin
       //they said yes..
+     GameSound.Play('explo');
       PacketSrv.GameData.ClearAllHashes;
       UpdateBoard(nil);
-    end;
+    end else GameSound.Play('blip');
    fDlgUp:=False;
 
 end;
@@ -976,6 +996,7 @@ begin
      begin
        ConfirmDlg.OnButtonClick:=DoClearGamerz;
      end;
+     GameSound.Play('bloop');
 
 end;
 
@@ -985,10 +1006,11 @@ begin
    Tron.KillConfirm;
    if sel=0 then
     begin
+     GameSound.Play('explo');
       //they said yes..
       PacketSrv.GameData.ClearAllGamerz;
       UpdateBoard(nil);
-    end;
+    end else GameSound.Play('blip');
    fDlgUp:=False;
 end;
 
@@ -1008,6 +1030,8 @@ if fDlgUp then exit;
 
     end;
 
+    GameSound.Play('boing');
+
     fDlgUp:=True;
 
 end;
@@ -1020,6 +1044,7 @@ begin
      Tron.KillConfig;
     end;
     fDlgUp:=False;
+    GameSound.Play('bloop');
 end;
 
 
@@ -1043,7 +1068,20 @@ begin
       PacketSrv.Stop;
       PacketSrv.Port:=aNewPort;
       PacketSrv.Start;
+      //save port change tio global var
+      ServerPort:=IntToStr(aNewPort);
+      //update display..
+      fTopRightBtn.Text:=IntToStr(aNewPort);
     end;
+
+    GameSound.Play('modem');
+
+end;
+
+procedure TDlgLeaderBoard.NewGamer(sender: TObject);
+begin
+
+ GameSound.Play('gong');
 
 end;
 
@@ -1051,9 +1089,12 @@ procedure TDlgLeaderBoard.UpdateBoard(sender: TObject);
 var
 i:integer;
 aGamer:tGamer;
+aCurrFirst:string;
 begin
 //
      PacketSrv.GameData.SortGamerz;
+     aCurrFirst:=fGamerz[0].Text;
+
 
 self.BeginUpdate;
 try
@@ -1083,6 +1124,14 @@ try
 finally
   self.EndUpdate;
 end;
+
+ if Not fFirstTime then
+   begin
+    if aCurrFirst<>fGamerz[0].Text then
+       GameSound.Play('raid') else GameSound.Play('buzz');
+   end else fFirstTime:=False;
+
+
 
 end;
 

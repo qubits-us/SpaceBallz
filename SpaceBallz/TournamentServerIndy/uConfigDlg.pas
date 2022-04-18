@@ -91,7 +91,7 @@ uses
 
 implementation
 
-uses uIndySBPacketServer,uGlobs;
+uses uIndySBPacketServer,uGlobs,uGameSound;
 
 
 
@@ -630,7 +630,8 @@ if fNumLevels>6 then
                 fBtnDelay[i].RecordID:=fStartNum+i;
                 fBtnDelay[i].Text:=FormatBestScore(fGameDef.Levels[fStartNum+i].Seconds);
               end;
-       end;
+         GameSound.Play('click');
+       end else GameSound.Play('bloop');
    end;
 end;
 
@@ -655,7 +656,8 @@ if fNumLevels>6 then
                 fBtnDelay[i].Text:=FormatBestScore(fGameDef.Levels[fStartNum+i].Seconds);
 
               end;
-       end;
+         GameSound.Play('click');
+       end else GameSound.Play('bloop');
    end;
 end;
 
@@ -668,7 +670,7 @@ var
 aRecId:integer;
 begin
 if fDlgUp then exit;
-
+  aRecID:=0;
    if sender is tDlgInputButton then
      with sender as tDlgInputButton do
         begin
@@ -686,7 +688,7 @@ if fDlgUp then exit;
           fNumSel.Visible:=true;
           fNumSel.Tag:=aRecId;
           fDlgUp:=true;
-
+     GameSound.Play('boing');
 
 end;
 
@@ -713,6 +715,8 @@ begin
      end;
     end;
 
+   GameSound.Play('blip');
+
    fDlgUp:=false;
 end;
 
@@ -722,6 +726,7 @@ var
 aRecID:integer;
 begin
 if fDlgUp then exit;
+aRecID:=0;
    if sender is tDlgInputButton then
      with sender as tDlgInputButton do
      begin
@@ -741,6 +746,8 @@ if fDlgUp then exit;
           fNumPad.Position.Z:=-10;
           fNumPad.Visible:=true;
           fDlgUp:=true;
+
+   GameSound.Play('boing');
 
 
 
@@ -768,6 +775,9 @@ begin
          end;
      end;
     end;
+
+   GameSound.Play('blip');
+
 
    fDlgUp:=false;
 
@@ -841,6 +851,7 @@ if fDlgUp then exit;
       1:fBtnBallSize.Text:='Medium';
       2:fBtnBallSize.Text:='Large';
       end;
+   GameSound.Play('click');
 
 
 
@@ -863,6 +874,7 @@ if fDlgUp then exit;
       2:fBtnPaddleSize.Text:='Large';
       end;
 
+   GameSound.Play('click');
 
 
 end;
@@ -884,6 +896,7 @@ if fDlgUp then exit;
           fNumSel.Position.Z:=-10;
           fNumSel.Visible:=true;
           fDlgUp:=true;
+   GameSound.Play('boing');
 
 
 
@@ -903,6 +916,8 @@ begin
     fBtnBallSpeed.Text:=IntToStr(aNum);
     fGameDef.BallSpeed:=aNum;
     end;
+
+   GameSound.Play('blip');
 
    fDlgUp:=false;
 
@@ -924,6 +939,7 @@ begin
           fNumPad.Position.Z:=-10;
           fNumPad.Visible:=true;
           fDlgUp:=true;
+   GameSound.Play('boing');
 
 
 
@@ -951,6 +967,8 @@ begin
        fNumPad.Visible:=false;
     end;
 
+   GameSound.Play('blip');
+
    fDlgUp:=False;
 
 end;
@@ -972,6 +990,7 @@ begin
           fNumPad.Position.Z:=-10;
           fNumPad.Visible:=true;
           fDlgUp:=True;
+   GameSound.Play('boing');
 
 
 
@@ -991,6 +1010,8 @@ begin
       end;
        fNumPad.visible:=false;
     end;
+
+   GameSound.Play('blip');
 
    fDlgUp:=False;
 
