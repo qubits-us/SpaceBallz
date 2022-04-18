@@ -82,12 +82,11 @@ uses uGlobs,dmMaterials,uPacketClientDM;
 Constructor tConnectDlg.Create(aOwner: TComponent; aMat: TDlgMaterial;
                 aWidth: Single; aHeight: Single; aX: Single; aY: Single);
 var
-i:integer;
 newx,newy:single;
-aButtonHeight,aButtonWidth,aParamWidth:single;
+aButtonWidth,aParamWidth:single;
 aColGap,aRowGap:single;
 SectionHeight:single;
-ah,af,ap:single;
+ah:single;
 tmpBitmap:tBitmap;
 begin
 inherited Create(aOwner);
@@ -288,8 +287,6 @@ if SectionHeight>(aButtonWidth+aColGap) then
 end;
 
 Destructor tConnectDlg.Destroy;
-var
-i:integer;
 begin
 
  if not fCleanedUp then CleanUp;
@@ -299,8 +296,6 @@ inherited;
 end;
 
 procedure tConnectDlg.CleanUp;
-var
-i:integer;
 begin
 //clean house
 if fCleanedUp then Exit;

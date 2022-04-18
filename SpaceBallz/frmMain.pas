@@ -26,6 +26,7 @@ type
     procedure InitSpaceBallz;
     procedure DoCloseApp(sender: TObject);
     procedure FormTouch(Sender: TObject; const Touches: TTouches; const Action: TTouchAction);
+    function  HandleAppEvent(AAppEvent: TApplicationEvent; AContext: TObject): Boolean;
     procedure Form3DClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
@@ -61,6 +62,40 @@ begin
   if TPlatformServices.Current.SupportsPlatformService (IFMXScreenService, IInterface(ScreenService)) then
     Result := ScreenService.GetScreenScale;
 end;
+
+
+
+function TMainFrm.HandleAppEvent(AAppEvent: TApplicationEvent; AContext: TObject): Boolean;
+begin
+  case AAppEvent of
+    //TApplicationEvent.FinishedLaunching: Log('Finished Launching');
+    TApplicationEvent.BecameActive:
+     begin
+
+       if Assigned(SpaceBallz) then
+        begin
+          SpaceBallz.PauseGame(false);
+        end;
+     end;
+    //TApplicationEvent.WillBecomeInactive: Log('Will Become Inactive');
+    TApplicationEvent.EnteredBackground:
+     begin
+       if Assigned(SpaceBallz) then
+        begin
+          SpaceBallz.PauseGame(true);
+        end;
+     end;
+    //TApplicationEvent.WillBecomeForeground: Log('Will Become Foreground');
+    //TApplicationEvent.WillTerminate: Log('Will Terminate');
+    //TApplicationEvent.LowMemory: Log('Low Memory');
+    //TApplicationEvent.TimeChange: Log('Time Change');
+    //TApplicationEvent.OpenURL: Log('Open URL');
+  end;
+  Result := True;
+end;
+
+
+
 
 //handle two fingers, moving two paddles..
 procedure TMainfrm.FormTouch(Sender: TObject; const Touches: TTouches; const Action: TTouchAction);
@@ -141,6 +176,7 @@ end;
 procedure TMainFrm.Form3DCreate(Sender: TObject);
 var
 aIni:TIniFile;
+FMXApplicationEventService: IFMXApplicationEventService;
 begin
 
 //in the beginning, there was only code..
@@ -227,6 +263,9 @@ aIni.Free;
     Left:=50;
     Top:=10;
 
+ if TPlatformServices.Current.SupportsPlatformService(IFMXApplicationEventService, IInterface(FMXApplicationEventService)) then
+    FMXApplicationEventService.SetApplicationEventHandler(HandleAppEvent);
+
 
  {$IFDEF ANDROID} //robots
        GoFullScreen:=true;
@@ -250,8 +289,10 @@ aIni.Free;
     BorderStyle:=TFmxFormBorderStyle.ToolWindow;
     Caption:='SpaceBallz - www.qubits.us';
     //my 4k phone's res, but it's hdpi
-    ClientWidth:=916;
-    ClientHeight:=411;
+//    ClientWidth:=916;
+//    ClientHeight:=411;
+    ClientWidth:=1280;
+    ClientHeight:=800;
      {Berlin gotta ya!!
        don't trunc and replace / with div
        those are ints, d11 singles}

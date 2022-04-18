@@ -134,6 +134,7 @@ type
        Constructor Create(Sender: TComponent;aWidth,aHeight,aX,aY:single);Reintroduce;
        procedure   CleanUp;
        Destructor  Destroy;override;
+       procedure PauseGame(aPause:Boolean);
        Procedure   MovePaddles(lY:single;rY:single);
        property    OnClose:TDlgDoneClick_Event read fCloseEvent write fCloseEvent;
        property    CleanedUp:boolean read fCleanedUp;
@@ -512,7 +513,7 @@ begin
   fTxt.Position.X:=((Width/2)*-1)+(fTxt.Width/2)+(aGap);
   fTxt.Position.Y:=((Height/2))-(fTxt.Height);
   fTxt.Position.Z:=-1;
-  fTxt.Text:='Delphi-Future coded.'; //happy birthday delphi!!!
+  fTxt.Text:='..SpaceBallz..'; //happy birthday delphi!!!
   fTxt.MaterialSource:=MaterialsDm.tmGold;
   fTxt.MaterialBackSource:=MaterialsDm.tmGold;
   fTxt.MaterialShaftSource:=MaterialsDm.tmGold;
@@ -541,6 +542,8 @@ begin
 
   GameSound.EffectsVol:=MID_VOL;
   GameSound.MusicVol:=MID_VOL;
+
+
 
 
 
@@ -1109,6 +1112,22 @@ end;
   fGameRunning:=true;
 
 
+end;
+
+procedure tSpaceBallz.PauseGame(aPause: Boolean);
+begin
+ if not fGameRunning then exit;//nothing to do
+
+  if aPause then
+    begin
+     fGameTmr.Enabled:=false;
+     GameSound.MusicPlaying:=false;
+
+    end else
+      begin
+      fGameTmr.Enabled:=false;
+      GameSound.MusicPlaying:=false;
+      end;
 end;
 
 
