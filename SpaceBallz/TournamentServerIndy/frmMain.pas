@@ -47,13 +47,6 @@ begin
 end;
 
 
-procedure WiggleHandle;
-begin
-{$IF RTLVersion111}
-TGPUObjectsPool.Instance.Free;
-{$ENDIF}
-end;
-
 
 
 
@@ -99,10 +92,6 @@ aIni.Free;
     end;
     {$ENDIF}
 
-
-  {$IFDEF MSWINDOWS}
-    WiggleHandle;
-  {$ENDIF}
 
 
 end;
