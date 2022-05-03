@@ -46,12 +46,6 @@ uses
   uPacketClientDm,uGameSound;
 
 
-procedure WiggleHandle;
-begin
-{$IF RTLVersion111}
-TGPUObjectsPool.Instance.Free;
-{$ENDIF}
-end;
 
 
 
@@ -163,10 +157,6 @@ aIni.Free;
   MainActivity.finish;
   {$ENDIF}
 
-
-  {$IFDEF MSWINDOWS}
-    WiggleHandle;
-  {$ENDIF}
 
 
 
