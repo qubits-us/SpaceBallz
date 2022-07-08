@@ -14,6 +14,8 @@ Both have embedded leader boards, displays top 12 gamerz<br>
 <br>
 GAME ON!!<br>
 have fun!!<br>
+Also available on <a href="https://play.google.com/store/apps/details?id=us.qubits.SpaceBallz" rel="nofollow">Google Play Store</a>
+<br>
 
 
 Delphi 11, Firemonkey3d, uses base3d, ICS, INDY<br>
